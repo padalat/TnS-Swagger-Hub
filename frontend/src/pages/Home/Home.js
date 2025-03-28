@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Swagger from "../../components/Swagger";
-
+import { Link} from "react-router-dom";
 const Home = () => {
   const [search, setSearch] = useState("");
   const [projects, setProjects] = useState([]); 
@@ -40,7 +40,7 @@ const Home = () => {
             onChange={(e) => setSearch(e.target.value)}
             className="w-[90%] p-2 border rounded-md "
           />
-          <button className="p-2 w-[10%] h-[40px] bg-white rounded-md flex justify-center items-center">+</button>
+          <Link to="add" className="p-2 w-[10%] h-[40px] bg-white rounded-md flex justify-center items-center">+</Link>
         </div>
         <ul>
           {filteredProjects.map((project, index) => (
