@@ -1,19 +1,52 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
-import requestInterceptor from '../utils/requestInterceptor'
-const SwaggerHub = ({ swaggerSpec }) => {
+import requestInterceptor from '../utils/requestInterceptor';
+import Loader from "./Loader";
+import WelcomeMessage from "./WelcomeMessage";
+import ErrorMessage from "./ErrorMessage";
+
+const SwaggerHub = () => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const location = useLocation();
+  const queryParam = new URLSearchParams(location.search).get("id");
+  console.log(queryParam);
+  const [swaggerSpec, setSwaggerSpec] = useState(null);
+
+  useEffect(() => {
+    if (queryParam) { 
+      setLoading(true);
+      fetch(`http://localhost:8000/swagger/${queryParam}`)
+        .then((res) => res.json())
+        .then((res) => {
+          console.log(res);
+          setSwaggerSpec(res.swagger);
+          setError(null);
+        })
+        .catch((err) => {
+          console.error("Failed to fetch projects:", err);
+          setError("Something went wrong");
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    }
+  }, [queryParam]);
 
   return (
-    <div className="min-h-screen w-full" style={{ padding: "20px" }}>
-      {swaggerSpec ? (
-        <SwaggerUI
-          spec={swaggerSpec}
-          requestInterceptor={requestInterceptor}
-        />
-      ) : (
-        <p>Loading API documentation...</p>
-      )}
+    <div className="h-full w-full" style={{ padding: "20px" }}>
+      {error 
+          ? <ErrorMessage error={error} />
+          : loading 
+            ? <Loader /> 
+            : swaggerSpec 
+              ? <SwaggerUI
+                  spec={swaggerSpec}
+                  requestInterceptor={requestInterceptor}
+                />
+              : <WelcomeMessage />}
     </div>
   );
 };
