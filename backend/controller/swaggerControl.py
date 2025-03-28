@@ -4,6 +4,8 @@ import asyncio
 import re
 from json.decoder import JSONDecodeError
 from database.database import get_db, ProjectInfo
+import json
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
@@ -30,6 +32,16 @@ async def fetch_service_json(client, service_name, url, id):
     except httpx.HTTPError:
         pass
     return {"service": service_name, "swagger": None}
+
+@router.get("/swagger/{uuid}/")
+async def get_swagger_by_uuid(uuid: str):
+    db = next(get_db())
+    project = db.query(ProjectInfo).filter(ProjectInfo.uuid == uuid).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    async with httpx.AsyncClient() as client:
+        swagger_data = await fetch_service_json(client, project.projectname, project.projecturl, project.uuid)
+    return swagger_data
 
 @router.get("/fetch-event-configs/")
 async def fetch_event_configs(request: Request):
@@ -62,22 +74,45 @@ async def post_event_configs(request: Request):
     headers = incoming_headers.copy()
     headers["host"] = host
     headers["referer"] = f"http://{host}/swagger-ui/index.html"
+    
     try:
         payload = await request.body()
         if not payload:
             payload = None
         else:
             headers["content-length"] = str(len(payload))
+        
         async with httpx.AsyncClient() as client:
             response = await client.post(swagger_url, headers=headers, content=payload)
-        if response.status_code == 200:
-            if response.text.strip():
-                try:
-                    return response.json()
-                except ValueError:
-                    return {"message": "Success", "data": response.text}
-            else:
-                return {"message": "Success", "data": None}
-        raise HTTPException(status_code=response.status_code, detail=response.text)
+        
+        # This will raise an exception if the response is not 2xx.
+        response.raise_for_status()
+        
+        if response.text.strip():
+            try:
+                return response.json()
+            except ValueError:
+                return {"message": "Success", "data": response.text}
+        else:
+            return {"message": "Success", "data": None}
+    
+    except httpx.HTTPStatusError as e:
+        # Return the error response as JSON directly
+        try:
+            error_content = json.loads(e.response.text)
+        except json.JSONDecodeError:
+            error_content = {"error": e.response.text}
+        return JSONResponse(status_code=e.response.status_code, content=error_content)
+    
     except httpx.RequestError as e:
-        raise HTTPException(status_code=500, detail=f"Request failed: {str(e)}")
+        try:
+            error_content = json.loads(str(e))
+        except json.JSONDecodeError:
+            error_content = {"error": str(e)}
+        return JSONResponse(status_code=500, content=error_content)
+
+@router.get("/getprojects/")
+async def get_all_projects():
+    db = next(get_db())
+    projects = db.query(ProjectInfo).all()
+    return [{"projectname": p.projectname, "uuid": p.uuid} for p in projects]
