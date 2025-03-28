@@ -53,12 +53,28 @@ async def fetch_event_configs(request: Request):
     try:
         async with httpx.AsyncClient() as client:
             response = await client.get(incoming_headers["swagger_url"], headers=incoming_headers)
-        if response.status_code == 200:
-            return response.json()
+        
+        if response.text.strip():
+            try:
+                return response.json()
+            except ValueError:
+                return {"message": "Success", "data": response.text}
         else:
-            raise HTTPException(status_code=response.status_code, detail=response.json())
+            return {"message": "Success", "data": None}
+    except httpx.HTTPStatusError as e:
+        # Return the error response as JSON directly
+        try:
+            error_content = json.loads(e.response.text)
+        except json.JSONDecodeError:
+            error_content = {"error": e.response.text}
+        return JSONResponse(status_code=e.response.status_code, content=error_content)
+    
     except httpx.RequestError as e:
-        raise HTTPException(status_code=500, detail=f"Request failed: {str(e)}")
+        try:
+            error_content = json.loads(str(e))
+        except json.JSONDecodeError:
+            error_content = {"error": str(e)}
+        return JSONResponse(status_code=500, content=error_content)
 
 @router.post("/fetch-event-configs/")
 async def post_event_configs(request: Request):

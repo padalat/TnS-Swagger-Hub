@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Loader from "./Loader";
 
 const ProjectsPanel = () => {
   const [search, setSearch] = useState("");
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true); // added loading state
+  const [searchParams] = useSearchParams();
+  const currentId = searchParams.get("id");
 
   useEffect(() => {
     fetch("http://localhost:8000/getprojects/")
@@ -51,7 +53,7 @@ const ProjectsPanel = () => {
             {filteredProjects.map((project, index) => (
               <li
                 key={index}
-                className="p-2 bg-gray-50 border border-gray-200 mb-2 rounded cursor-pointer hover:bg-blue-50 transition-colors"
+                className={`p-2 ${currentId === project.uuid ? "bg-gray-200" : "bg-gray-50"} border border-gray-200 mb-2 rounded cursor-pointer hover:bg-gray-100 transition-colors`}
                 onClick={() => navigate(`?id=${project.uuid}`)}
               >
                 {project.projectname}
