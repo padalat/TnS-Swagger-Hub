@@ -6,22 +6,20 @@ import requestInterceptor from '../utils/requestInterceptor';
 import Loader from "./Loader";
 import WelcomeMessage from "./WelcomeMessage";
 import ErrorMessage from "./ErrorMessage";
-
+import { BASE_API } from "../utils/baseApi";
 const SwaggerHub = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const location = useLocation();
   const queryParam = new URLSearchParams(location.search).get("id");
-  console.log(queryParam);
   const [swaggerSpec, setSwaggerSpec] = useState(null);
 
   useEffect(() => {
     if (queryParam) { 
       setLoading(true);
-      fetch(`http://localhost:8000/swagger/${queryParam}`)
+      fetch(`${BASE_API}/swagger/get/${queryParam}`)
         .then((res) => res.json())
         .then((res) => {
-          console.log(res);
           setSwaggerSpec(res.swagger);
           setError(null);
         })
