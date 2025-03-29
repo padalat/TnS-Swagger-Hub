@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
-@router.get("/swagger/")
+@router.get("/swagger/get/all")
 async def get_all_swagger():
     """Fetch OpenAPI JSON for all services using project URLs from DB"""
     db = next(get_db())
@@ -33,7 +33,7 @@ async def fetch_service_json(client, service_name, url, id):
         pass
     return {"service": service_name, "swagger": None}
 
-@router.get("/swagger/{uuid}/")
+@router.get("/swagger/get/{uuid}")
 async def get_swagger_by_uuid(uuid: str):
     db = next(get_db())
     project = db.query(ProjectInfo).filter(ProjectInfo.uuid == uuid).first()
@@ -43,7 +43,7 @@ async def get_swagger_by_uuid(uuid: str):
         swagger_data = await fetch_service_json(client, project.projectname, project.projecturl, project.uuid)
     return swagger_data
 
-@router.get("/fetch-event-configs/")
+@router.get("/swagger-fetch")
 async def fetch_event_configs(request: Request):
     """Fetch event configurations from a given swagger URL"""
     incoming_headers = dict(request.headers)
@@ -76,7 +76,7 @@ async def fetch_event_configs(request: Request):
             error_content = {"error": str(e)}
         return JSONResponse(status_code=500, content=error_content)
 
-@router.post("/fetch-event-configs/")
+@router.post("/swagger-fetch")
 async def post_event_configs(request: Request):
     """Post event configurations to a given swagger URL"""
     incoming_headers = dict(request.headers)
@@ -127,8 +127,3 @@ async def post_event_configs(request: Request):
             error_content = {"error": str(e)}
         return JSONResponse(status_code=500, content=error_content)
 
-@router.get("/getprojects/")
-async def get_all_projects():
-    db = next(get_db())
-    projects = db.query(ProjectInfo).all()
-    return [{"projectname": p.projectname, "uuid": p.uuid} for p in projects]
