@@ -1,36 +1,47 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Loader from "./Loader";
-
+import ErrorMessage from "./ErrorMessage"; // added import for error handling
+import { BASE_API } from "../utils/baseApi";
 const ProjectsPanel = () => {
   const [search, setSearch] = useState("");
   const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true); // added loading state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
   const currentId = searchParams.get("id");
 
   useEffect(() => {
-    fetch("http://localhost:8000/getprojects/")
-      .then((res) => res.json())
-      .then((res) => {
-        setProjects(res);
-        setLoading(false); // stop loading after data is fetched
-      })
-      .catch((err) => {
-        console.error("Failed to fetch projects:", err);
-        setLoading(false); // stop loading on error
-      });
+    async function fetchProjects() {
+      try {
+        const res = await fetch(`${BASE_API}/projects/get/all`);
+        if (!res.ok) { // new res.ok check
+          throw new Error(`${res.status}: ${res.statusText}`);
+        }
+        const data = await res.json();
+        setProjects(data);
+      } catch (err) {
+        setError(err.message); 
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProjects();
   }, []);
 
-  const filteredProjects = projects.filter((project) =>
-    project.projectname.toLowerCase().includes(search.toLowerCase())
-  );
+  // Remove optional chaining; ensure projects is an array
+  const filteredProjects = Array.isArray(projects)
+    ? projects.filter((project) =>
+        project.projectname.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
+
   const navigate = useNavigate();
 
   return (
     <div className="w-[25%] bg-gray-50 p-4 shadow-xl">
       <h2 className="text-lg font-bold mb-4">Projects</h2>
-      {loading ? ( // render loading animation when loading
+      {loading ? (
         <Loader />
       ) : (
         <>
@@ -50,7 +61,14 @@ const ProjectsPanel = () => {
             </Link>
           </div>
           <ul>
-            {filteredProjects.map((project, index) => (
+          {error ? (
+            <ErrorMessage error={error} />
+          ) : filteredProjects.length === 0 ? (
+            <li className="p-2  mb-2 rounded text-center">
+              No projects found
+            </li>
+          ) : (
+            filteredProjects.map((project, index) => (
               <li
                 key={index}
                 className={`p-2 ${currentId === project.uuid ? "bg-gray-200" : "bg-gray-50"} border border-gray-200 mb-2 rounded cursor-pointer hover:bg-gray-100 transition-colors`}
@@ -58,7 +76,8 @@ const ProjectsPanel = () => {
               >
                 {project.projectname}
               </li>
-            ))}
+            ))
+          )}
           </ul>
         </>
       )}
