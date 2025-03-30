@@ -10,14 +10,14 @@ const AddProjectForm = ({ onAddProject }) => {
 
   const validateUrl = (inputUrl) => {
     const urlPattern = new RegExp(
-      "^(https?:\\/\\/)" + // Must start with http:// or https://
-      "((([a-zA-Z\\d]([a-zA-Z\\d-]*[a-zA-Z\\d])*)\\.)+[a-zA-Z]{2,}|" + // Domain
-      "localhost|" + // Localhost
-      "(\\d{1,3}\\.){3}\\d{1,3}|" + // IPv4
-      "\\[[a-fA-F\\d:]+\\])" + // IPv6
-      "(\\:\\d+)?" + // Port
-      "(\\/[-a-zA-Z\\d%@_.~+&:]*)*" + // Path
-      "(\\?[;&a-zA-Z\\d%@_.,~+&:=-]*)?" + // Query string
+      "^(https?:\\/\\/)" + 
+      "((([a-zA-Z\\d]([a-zA-Z\\d-]*[a-zA-Z\\d])*)\\.)+[a-zA-Z]{2,}|" + 
+      "localhost|" +
+      "(\\d{1,3}\\.){3}\\d{1,3}|" + 
+      "\\[[a-fA-F\\d:]+\\])" + 
+      "(\\:\\d+)?" + 
+      "(\\/[-a-zA-Z\\d%@_.~+&:]*)*" + 
+      "(\\?[;&a-zA-Z\\d%@_.,~+&:=-]*)?" +
       "(\\#[-a-zA-Z\\d_]*)?$",
       "i"
     );
@@ -46,11 +46,9 @@ const AddProjectForm = ({ onAddProject }) => {
 
   return (
     <div className="relative flex flex-col items-center p-6">
-      {/* Add Project Form - Blur when Instructions are visible */}
       <div className={`bg-white p-6 rounded-lg shadow-lg w-96 transition ${showInstructions ? "blur-md" : ""}`}>
         <h2 className="text-xl font-bold mb-4">Add New Project</h2>
 
-        {/* Project Name Input */}
         <input
           type="text"
           placeholder="Project Name"
@@ -59,7 +57,6 @@ const AddProjectForm = ({ onAddProject }) => {
           className="w-full border p-2 rounded mb-3"
         />
 
-        {/* Project URL Input */}
         <div className="relative w-full">
           <input
             type="text"
@@ -70,17 +67,11 @@ const AddProjectForm = ({ onAddProject }) => {
               isValidUrl === null ? "" : isValidUrl ? "border-green-500" : "border-red-500"
             }`}
           />
-          {/* Info Icon (Opens Instructions) */}
-          <FaInfoCircle
-            onClick={() => setShowInstructions(true)}
-            title="Click for instructions"
-            className="absolute right-3 top-3 text-gray-400 hover:text-blue-500 cursor-pointer"
-          />
+          {/* Info Icon (Opens Instructions) */}          
         </div>
         {isValidUrl === false && <p className="text-red-500 text-sm mt-1">Invalid URL format</p>}
         {isValidUrl && <p className="text-green-500 text-sm mt-1">Valid URL</p>}
 
-        {/* Add Button */}
         <button
           type="submit"
           onClick={handleSubmit}
@@ -94,28 +85,8 @@ const AddProjectForm = ({ onAddProject }) => {
 
         {message && <p className="mt-2 text-center text-sm text-gray-700">{message}</p>}
       </div>
-
-      {/* Instructions Popup */}
-      {showInstructions && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96 relative">
-            <button
-              onClick={() => setShowInstructions(false)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
-            >
-              ✖
-            </button>
-            <h2 className="text-xl font-bold mb-4">Project URL Instructions</h2>
-            <p className="text-gray-600">
-              ✅ Your project URL should start with <b>http://</b> or <b>https://</b>. <br />
-              ✅ Avoid spaces or special characters in URLs. <br />
-              ✅ Example: <span className="text-blue-500">https://example.com</span>.
-            </p>
-          </div>
-        </div>
-      )}
+      {/* Instructions Popup Component */}
     </div>
   );
 };
-
 export default AddProjectForm;
