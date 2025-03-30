@@ -6,7 +6,7 @@ import WelcomeMessage from "../../components/WelcomeMessage";
 
 const Home = () => {
   
-
+  
   return (
     <div className="flex min-h-[95vh]">
       <ProjectsPanel />
