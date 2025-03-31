@@ -34,6 +34,7 @@ const AddProjectForm = ({ onAddProject }) => {
     const url = e.target.value;
     setProjectUrl(url);
     setIsValidUrl(validateUrl(url));
+    setMessage(null);
   };
 
   // const handleSubmit = async (e) => {
@@ -112,6 +113,9 @@ const AddProjectForm = ({ onAddProject }) => {
       }
     } catch (error) {
       setMessage("Error adding project. Please try again.");
+    }
+    finally{
+      setIsValidUrl(null);
     }
   };
   
