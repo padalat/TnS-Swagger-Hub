@@ -28,7 +28,7 @@ class ProjectInfo(Base):
     __tablename__ = "projectInfo"
     uuid = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     projectname = Column(String(255), nullable=False)
-    projecturl = Column(String(255), nullable=False)
+    projecturl = Column(String(255), nullable=False, unique=True)
     create_time = Column(DateTime, default=datetime.utcnow)
 
 # Create tables if they don't exist

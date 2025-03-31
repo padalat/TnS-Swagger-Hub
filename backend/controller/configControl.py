@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from database.database import get_db, ProjectInfo
 import requests
+from sqlalchemy.exc import SQLAlchemyError
 
 router = APIRouter()
 
@@ -23,11 +24,14 @@ async def add_project(project: ProjectCreate):
         response.json()
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid URL")
-    db = next(get_db())
-    new_project = ProjectInfo(projectname=project.projectname, projecturl=project.projecturl)
-    db.add(new_project)
-    db.commit()
-    db.refresh(new_project)
+    try:
+        db = next(get_db())
+        new_project = ProjectInfo(projectname=project.projectname, projecturl=project.projecturl)
+        db.add(new_project)
+        db.commit()
+        db.refresh(new_project)
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500, detail="Somethig went to wrong...")
     return {
         "uuid": new_project.uuid,
         "projectname": new_project.projectname,
@@ -36,8 +40,11 @@ async def add_project(project: ProjectCreate):
 
 @router.get("/projects/get/all")
 async def get_all_projects():
-    db = next(get_db())
-    projects = db.query(ProjectInfo).all()
+    try:
+        db = next(get_db())
+        projects = db.query(ProjectInfo).all()
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500, detail="Somethig went to wrong...")
     return [{"projectname": p.projectname, "uuid": p.uuid,"url":p.projecturl} for p in projects]
 
 @router.put("/projects/update/{uuid}")
@@ -53,14 +60,17 @@ async def update_project(uuid: str, project: ProjectCreate):
         response.json()
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid URL")
-    db = next(get_db())
-    existing_project = db.query(ProjectInfo).filter(ProjectInfo.uuid == uuid).first()
-    if not existing_project:
-        return {"error": "Project not found"}
-    existing_project.projectname = project.projectname
-    existing_project.projecturl = project.projecturl
-    db.commit()
-    db.refresh(existing_project)
+    try:
+        db = next(get_db())
+        existing_project = db.query(ProjectInfo).filter(ProjectInfo.uuid == uuid).first()
+        if not existing_project:
+            return {"error": "Project not found"}
+        existing_project.projectname = project.projectname
+        existing_project.projecturl = project.projecturl
+        db.commit()
+        db.refresh(existing_project)
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500, detail="Somethig went to wrong...")
     return {
         "uuid": existing_project.uuid,
         "projectname": existing_project.projectname,
