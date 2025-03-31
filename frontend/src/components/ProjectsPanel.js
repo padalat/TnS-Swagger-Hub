@@ -38,7 +38,7 @@ const ProjectsPanel = () => {
 
   const filteredProjects = Array.isArray(projects)
   ? projects.filter((project) =>
-      project.projectname.toLowerCase().includes(search.toLowerCase())
+    project?.projectname?.toLowerCase().includes(search?.toLowerCase() || "")
     )
   : [];
 
