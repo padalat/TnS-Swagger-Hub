@@ -13,7 +13,8 @@ class ProjectCreate(BaseModel):
 async def add_project(project: ProjectCreate):
     # Validate projecturl with exception handling and JSON validation
     try:
-        response = requests.get(project.projecturl)
+        # response = requests.get(project.projecturl)
+        response = requests.get(project.projecturl, verify=False)  # Disable SSL verification
     except requests.exceptions.RequestException as exc:
         raise HTTPException(status_code=400, detail=f"Invalid URL: {exc}")
     if response.status_code != 200:

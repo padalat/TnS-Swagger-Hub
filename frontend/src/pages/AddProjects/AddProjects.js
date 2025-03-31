@@ -1,4 +1,7 @@
 import React, { useState } from "react";
+import { FaInfoCircle } from "react-icons/fa";
+import Instructions from "../../components/Instruction";
+import { BASE_API } from "../../utils/baseApi";
 
 const AddProjectForm = ({ onAddProject }) => {
   const [projectName, setProjectName] = useState("");
@@ -29,18 +32,39 @@ const AddProjectForm = ({ onAddProject }) => {
     setIsValidUrl(validateUrl(url));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!projectName || !isValidUrl) {
       setMessage("Please enter a valid project name and URL.");
       return;
     }
-
-    onAddProject({ name: projectName, url: projectUrl });
-    setProjectName("");
-    setProjectUrl("");
-    setIsValidUrl(null);
-    setMessage("Project added successfully!");
+  
+    try {
+      const response = await fetch(`${BASE_API}/projects/add`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          projectname: projectName,
+          projecturl: projectUrl,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        setMessage("Project added successfully!");
+        setProjectName("");
+        setProjectUrl("");
+        setIsValidUrl(null);
+        onAddProject({ name: data.projectname, url: data.projecturl }); // Update UI
+      } else {
+        setMessage(data.detail || "Failed to add project.");
+      }
+    } catch (error) {
+      setMessage("Error adding project. Please try again.");
+    }
   };
 
   return (
@@ -66,7 +90,12 @@ const AddProjectForm = ({ onAddProject }) => {
               isValidUrl === null ? "" : isValidUrl ? "border-green-500" : "border-red-500"
             }`}
           />
-          {/* Info Icon (Opens Instructions) */}          
+          {/* Info Icon (Opens Instructions) */}   
+          <FaInfoCircle
+            onClick={() => setShowInstructions(true)}
+            title="Click for instructions"
+            className="absolute right-3 top-3 text-gray-400 hover:text-blue-500 cursor-pointer"
+          />          
         </div>
         {isValidUrl === false && <p className="text-red-500 text-sm mt-1">Invalid URL format</p>}
         {isValidUrl && <p className="text-green-500 text-sm mt-1">Valid URL</p>}
@@ -85,6 +114,9 @@ const AddProjectForm = ({ onAddProject }) => {
         {message && <p className="mt-2 text-center text-sm text-gray-700">{message}</p>}
       </div>
       {/* Instructions Popup Component */}
+      {showInstructions && (
+        <Instructions onClose={() => setShowInstructions(false)} />
+      )}
     </div>
   );
 };
