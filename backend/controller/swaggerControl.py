@@ -127,3 +127,144 @@ async def post_event_configs(request: Request):
             error_content = {"error": str(e)}
         return JSONResponse(status_code=500, content=error_content)
 
+@router.put("/swagger-fetch")
+async def put_event_configs(request: Request):
+    """Put event configurations to a given swagger URL"""
+    incoming_headers = dict(request.headers)
+    swagger_url = incoming_headers.get("swagger_url")
+    if not swagger_url:
+        raise HTTPException(status_code=400, detail="Missing 'swagger_url' in headers")
+    match = re.search(r'https?://([\d\.]+)', swagger_url)
+    if not match:
+        raise HTTPException(status_code=400, detail="Invalid 'swagger_url' format")
+    host = match.group(1)
+    headers = incoming_headers.copy()
+    headers["host"] = host
+    headers["referer"] = f"http://{host}/swagger-ui/index.html"
+
+    try:
+        payload = await request.body()
+        if payload:
+            headers["content-length"] = str(len(payload))
+        else:
+            payload = None
+
+        async with httpx.AsyncClient() as client:
+            response = await client.put(swagger_url, headers=headers, content=payload)
+
+        response.raise_for_status()
+        if response.text.strip():
+            try:
+                return response.json()
+            except ValueError:
+                return {"message": "Success", "data": response.text}
+        else:
+            return {"message": "Success", "data": None}
+
+    except httpx.HTTPStatusError as e:
+        try:
+            error_content = json.loads(e.response.text)
+        except json.JSONDecodeError:
+            error_content = {"error": e.response.text}
+        return JSONResponse(status_code=e.response.status_code, content=error_content)
+
+    except httpx.RequestError as e:
+        try:
+            error_content = json.loads(str(e))
+        except json.JSONDecodeError:
+            error_content = {"error": str(e)}
+        return JSONResponse(status_code=500, content=error_content)
+
+@router.patch("/swagger-fetch")
+async def patch_event_configs(request: Request):
+    """Patch event configurations to a given swagger URL"""
+    incoming_headers = dict(request.headers)
+    swagger_url = incoming_headers.get("swagger_url")
+    if not swagger_url:
+        raise HTTPException(status_code=400, detail="Missing 'swagger_url' in headers")
+    match = re.search(r'https?://([\d\.]+)', swagger_url)
+    if not match:
+        raise HTTPException(status_code=400, detail="Invalid 'swagger_url' format")
+    host = match.group(1)
+    headers = incoming_headers.copy()
+    headers["host"] = host
+    headers["referer"] = f"http://{host}/swagger-ui/index.html"
+
+    try:
+        payload = await request.body()
+        if payload:
+            headers["content-length"] = str(len(payload))
+        else:
+            payload = None
+
+        async with httpx.AsyncClient() as client:
+            response = await client.patch(swagger_url, headers=headers, content=payload)
+
+        response.raise_for_status()
+        if response.text.strip():
+            try:
+                return response.json()
+            except ValueError:
+                return {"message": "Success", "data": response.text}
+        else:
+            return {"message": "Success", "data": None}
+
+    except httpx.HTTPStatusError as e:
+        try:
+            error_content = json.loads(e.response.text)
+        except JSONDecodeError:
+            error_content = {"error": e.response.text}
+        return JSONResponse(status_code=e.response.status_code, content=error_content)
+
+    except httpx.RequestError as e:
+        try:
+            error_content = json.loads(str(e))
+        except JSONDecodeError:
+            error_content = {"error": str(e)}
+        return JSONResponse(status_code=500, content=error_content)
+
+@router.delete("/swagger-fetch")
+async def delete_event_configs(request: Request):
+    """Delete event configurations using a given swagger URL"""
+    incoming_headers = dict(request.headers)
+    swagger_url = incoming_headers.get("swagger_url")
+    if not swagger_url:
+        raise HTTPException(status_code=400, detail="Missing 'swagger_url' in headers")
+    match = re.search(r'https?://([\d\.]+)', swagger_url)
+    if not match:
+        raise HTTPException(status_code=400, detail="Invalid 'swagger_url' format")
+    host = match.group(1)
+    headers = incoming_headers.copy()
+    headers["host"] = host
+    headers["referer"] = f"http://{host}/swagger-ui/index.html"
+
+    # Remove Content-Length header if it exists
+    headers.pop("content-length", None)
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.delete(swagger_url, headers=headers)
+
+        response.raise_for_status()
+        if response.text.strip():
+            try:
+                return response.json()
+            except ValueError:
+                return {"message": "Success", "data": response.text}
+        else:
+            return {"message": "Success", "data": None}
+
+    except httpx.HTTPStatusError as e:
+        try:
+            error_content = json.loads(e.response.text)
+        except JSONDecodeError:
+            error_content = {"error": e.response.text}
+        return JSONResponse(status_code=e.response.status_code, content=error_content)
+
+    except httpx.RequestError as e:
+        try:
+            error_content = json.loads(str(e))
+        except JSONDecodeError:
+            error_content = {"error": str(e)}
+        return JSONResponse(status_code=500, content=error_content)
+
