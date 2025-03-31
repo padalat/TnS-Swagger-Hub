@@ -23,9 +23,9 @@ const Instruction = ({ onClose }) => {
           {/* Instruction 1 */}
           <div className="flex flex-col items-center text-center">
             <p className="text-gray-700 pb-5 text-lg mt-2">
-              <b>Go to:</b>{" "}
+              <b>Go to project swagger</b>{" "}
               <span className="text-blue-500">
-                http://&lt;elb-ip&gt;/webjars/swagger-ui/index.html
+                (http://&lt;elb-ip&gt;/webjars/swagger-ui/index.html)
               </span>
             </p>
             <img
