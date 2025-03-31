@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {  useNavigate, useSearchParams } from "react-router-dom";
 
 import Loader from "./Loader";
 import ErrorMessage from "./ErrorMessage";
@@ -36,6 +36,12 @@ const ProjectsPanel = () => {
     fetchProjects();
   }, []);
 
+  const filteredProjects = Array.isArray(projects)
+  ? projects.filter((project) =>
+      project.projectname.toLowerCase().includes(search.toLowerCase())
+    )
+  : [];
+
   const handleAddProject = (newProject) => {
     setProjects((prev) => [...prev, newProject]);
     setShowModal(false);
@@ -66,10 +72,10 @@ const ProjectsPanel = () => {
           <ul>
             {error ? (
               <ErrorMessage error={error} />
-            ) : projects.length === 0 ? (
+            ) : filteredProjects.length === 0 ? (
               <li className="p-2 mb-2 rounded text-center">No projects found</li>
             ) : (
-              projects.map((project, index) => (
+              filteredProjects.map((project, index) => (
                 <li
                   key={index}
                   className={`p-2 ${currentId === project.uuid ? "bg-gray-200" : "bg-gray-50"} border border-gray-200 mb-2 rounded cursor-pointer hover:bg-gray-100 transition-colors`}

@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { FaInfoCircle } from "react-icons/fa";
 
 const AddProjectForm = ({ onAddProject }) => {
   const [projectName, setProjectName] = useState("");
