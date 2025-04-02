@@ -74,7 +74,6 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
         setMessage("Project added successfully!");
       }
 
-      // Reset Form
       setProjectName("");
       setProjectUrl("");
       setPreprodUrl("");
@@ -96,7 +95,6 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
         <input type="text" placeholder="Project Name" value={projectName} onChange={(e) => setProjectName(e.target.value)} className="w-full border p-2 rounded mb-3" />
         <input type="text" placeholder="Project URL" value={projectUrl} onChange={(e) => setProjectUrl(e.target.value)} className="w-full border p-2 rounded mb-3" />
 
-        {/* Extra Fields in Edit Mode */}
         {editProject && (
           <>
             <input type="text" placeholder="Preprod URL" value={preprodUrl} onChange={(e) => setPreprodUrl(e.target.value)} className="w-full border p-2 rounded mb-3" />
