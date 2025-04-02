@@ -30,7 +30,6 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
 
     try {
       if (editProject) {
-        // ✅ Update Project
         const response = await fetch(`${BASE_API}/projects/update/${editProject.uuid}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -55,7 +54,6 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
 
         setMessage("Project updated successfully!");
       } else {
-        // ✅ Add New Project
         const response = await fetch(`${BASE_API}/projects/add`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -82,7 +80,7 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
       setPreprodUrl("");
       setProdUrl("");
       setPgUrl("");
-      setEditProject(null); // Close form after updating
+      setEditProject(null); 
 
       setTimeout(() => setMessage(""), 1000);
     } catch (error) {
