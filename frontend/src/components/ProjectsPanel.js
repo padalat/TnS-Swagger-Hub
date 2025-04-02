@@ -30,7 +30,6 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
     fetchProjects();
   }, []);
 
-  
   const handleEdit = (project) => {
     setAddProject({
       isEditing: true,
@@ -54,6 +53,7 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
       console.error("Error deleting project:", error);
     }
   };
+  
   const filteredProjects = search
     ? projects.filter((project) =>
         project.projectname.toLowerCase().includes(search.toLowerCase())
