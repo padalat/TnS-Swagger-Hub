@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import {  useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import Loader from "./Loader";
 import ErrorMessage from "./ErrorMessage";
 import { BASE_API } from "../utils/baseApi";
 
-const ProjectsPanel = ({projects, setProjects,setAddProject}) => {
+const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,7 +20,7 @@ const ProjectsPanel = ({projects, setProjects,setAddProject}) => {
           throw new Error(`${res.status}: ${res.statusText}`);
         }
         const data = await res.json();
-        setProjects(data);
+        setProjects(data.sort((a, b) => a.projectname.localeCompare(b.projectname)));
       } catch (err) {
         setError(err.message);
       } finally {
@@ -30,22 +30,21 @@ const ProjectsPanel = ({projects, setProjects,setAddProject}) => {
     fetchProjects();
   }, []);
 
-  const filteredProjects = Array.isArray(projects)
-  ? projects.filter((project) =>
-    project?.projectname?.toLowerCase().includes(search?.toLowerCase() || "")
-    )
-  : [];
-
-
+  //code for edit and delete
+  const filteredProjects = search
+    ? projects.filter((project) =>
+        project.projectname.toLowerCase().includes(search.toLowerCase())
+      )
+    : [];
 
   return (
-    <div className="relative w-[25%] bg-gray-50 p-4 shadow-xl">
-      <h2 className="text-lg font-bold mb-4">Projects</h2>
+    <div className="relative w-[25%] bg-gray-50 p-4 shadow-xl rounded-lg">
+      <h2 className="text-lg font-bold mb-4 text-center">Projects</h2>
       {loading ? (
         <Loader />
       ) : (
         <>
-          <div className="w-full mb-4 flex justify-center items-center h-[40px] flex gap-[5px]">
+          <div className="w-full mb-4 flex justify-center items-center h-[40px] gap-2 relative">
             <input
               type="text"
               placeholder="Search projects..."
@@ -54,33 +53,71 @@ const ProjectsPanel = ({projects, setProjects,setAddProject}) => {
               className="w-[80%] p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <button
-              onClick={() => setAddProject(true)}
+              onClick={() => setAddProject({ isEditing: false })}
               className="p-2 w-[20%] h-[40px] bg-blue-600 text-white rounded-md flex justify-center items-center hover:bg-blue-700 transition-colors"
             >
               +
             </button>
+            {search && (
+              <div className="absolute top-full left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto">
+                {filteredProjects.length === 0 ? (
+                  <p className="p-2 text-gray-500">No matching projects</p>
+                ) : (
+                  filteredProjects.map((project) => (
+                    <div
+                      key={project.uuid}
+                      className="p-2 hover:bg-blue-100 cursor-pointer"
+                      onClick={() => {
+                        setSearch("");
+                        navigate(`?id=${project.uuid}`);
+                      }}
+                    >
+                      {project.projectname}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
           <ul>
             {error ? (
               <ErrorMessage error={error} />
-            ) : filteredProjects.length === 0 ? (
-              <li className="p-2 mb-2 rounded text-center">No projects found</li>
             ) : (
-              filteredProjects.map((project, index) => (
+              projects.map((project, index) => (
                 <li
                   key={index}
-                  className={`p-2 ${currentId === project.uuid ? "bg-gray-200" : "bg-gray-50"} border border-gray-200 mb-2 rounded cursor-pointer hover:bg-gray-100 transition-colors`}
+                  className={`p-3 flex justify-between items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
+                    search && search.toLowerCase() === project.projectname.toLowerCase() ? "bg-blue-200" : ""
+                  }`}
                   onClick={() => navigate(`?id=${project.uuid}`)}
                 >
-                  {project.projectname}
+                  <span className="font-medium">{project.projectname}</span>
+                  <div className="flex gap-2">
+                    <button
+                      className="bg-yellow-500 text-white p-2 rounded-md hover:bg-yellow-600 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(project);
+                      }}
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 transition-all"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(project.uuid);
+                      }}
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </li>
               ))
             )}
           </ul>
         </>
       )}
-
-
     </div>
   );
 };
