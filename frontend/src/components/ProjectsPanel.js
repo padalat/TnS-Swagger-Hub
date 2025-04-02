@@ -30,7 +30,30 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
     fetchProjects();
   }, []);
 
-  //code for edit and delete
+  
+  const handleEdit = (project) => {
+    setAddProject({
+      isEditing: true,
+      projectData: {
+        name: project.projectname,
+        url: project.projecturl,
+        preprodUrl: project.preprodUrl || "",
+        prodUrl: project.prodUrl || "",
+        pgUrl: project.pgUrl || "",
+        uuid: project.uuid,
+      },
+    });
+  };
+
+  const handleDelete = async (uuid) => {
+    if (!window.confirm("Are you sure you want to delete this project?")) return;
+    try {
+      setProjects((prevProjects) => prevProjects.filter((p) => p.uuid !== uuid));
+      console.log("Project deleted successfully from state.");
+    } catch (error) {
+      console.error("Error deleting project:", error);
+    }
+  };
   const filteredProjects = search
     ? projects.filter((project) =>
         project.projectname.toLowerCase().includes(search.toLowerCase())

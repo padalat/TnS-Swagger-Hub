@@ -30,7 +30,6 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
 
     try {
       if (editProject) {
-        // ✅ Update Project
         const response = await fetch(`${BASE_API}/projects/update/${editProject.uuid}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
@@ -55,7 +54,6 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
 
         setMessage("Project updated successfully!");
       } else {
-        // ✅ Add New Project
         const response = await fetch(`${BASE_API}/projects/add`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -76,13 +74,12 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
         setMessage("Project added successfully!");
       }
 
-      // Reset Form
       setProjectName("");
       setProjectUrl("");
       setPreprodUrl("");
       setProdUrl("");
       setPgUrl("");
-      setEditProject(null); // Close form after updating
+      setEditProject(null); 
 
       setTimeout(() => setMessage(""), 1000);
     } catch (error) {
@@ -98,7 +95,6 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
         <input type="text" placeholder="Project Name" value={projectName} onChange={(e) => setProjectName(e.target.value)} className="w-full border p-2 rounded mb-3" />
         <input type="text" placeholder="Project URL" value={projectUrl} onChange={(e) => setProjectUrl(e.target.value)} className="w-full border p-2 rounded mb-3" />
 
-        {/* Extra Fields in Edit Mode */}
         {editProject && (
           <>
             <input type="text" placeholder="Preprod URL" value={preprodUrl} onChange={(e) => setPreprodUrl(e.target.value)} className="w-full border p-2 rounded mb-3" />
