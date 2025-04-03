@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { BASE_API } from "../../utils/baseApi";
 
@@ -29,8 +28,11 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
     }
 
     try {
+      let response, data;
+      console.log(editProject)
+      
       if (editProject) {
-        const response = await fetch(`${BASE_API}/projects/update/${editProject.uuid}`, {
+        response = await fetch(`${BASE_API}/projects/update/${editProject.uuid}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -43,7 +45,7 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
         });
 
         if (!response.ok) throw new Error("Failed to update project.");
-
+        
         setProjects((prev) =>
           prev.map((proj) =>
             proj.uuid === editProject.uuid
@@ -51,10 +53,9 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
               : proj
           )
         );
-
         setMessage("Project updated successfully!");
       } else {
-        const response = await fetch(`${BASE_API}/projects/add`, {
+        response = await fetch(`${BASE_API}/projects/add`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -66,7 +67,7 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
           }),
         });
 
-        const data = await response.json();
+        data = await response.json();
         if (!response.ok) throw new Error(data.detail || "Failed to add project.");
 
         onAddProject({ projectname: projectName, projecturl: projectUrl, preprodUrl, prodUrl, pgUrl, uuid: data.uuid });
@@ -74,14 +75,16 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
         setMessage("Project added successfully!");
       }
 
+      // Reset Form & Close Editor
       setProjectName("");
       setProjectUrl("");
       setPreprodUrl("");
       setProdUrl("");
       setPgUrl("");
-      setEditProject(null); 
-
-      setTimeout(() => setMessage(""), 1000);
+      setTimeout(() => {
+        setMessage("");
+        setEditProject(null);
+      }, 1000);
     } catch (error) {
       setMessage(error.message || "Error processing project. Please try again.");
     }
@@ -92,9 +95,23 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
         <h2 className="text-xl font-bold mb-4">{editProject ? "Edit Project" : "Add New Project"}</h2>
 
-        <input type="text" placeholder="Project Name" value={projectName} onChange={(e) => setProjectName(e.target.value)} className="w-full border p-2 rounded mb-3" />
-        <input type="text" placeholder="Project URL" value={projectUrl} onChange={(e) => setProjectUrl(e.target.value)} className="w-full border p-2 rounded mb-3" />
+        {/* Project Name & URL fields (shown in both Add & Edit mode) */}
+        <input
+          type="text"
+          placeholder="Project Name"
+          value={projectName}
+          onChange={(e) => setProjectName(e.target.value)}
+          className="w-full border p-2 rounded mb-3"
+        />
+        <input
+          type="text"
+          placeholder="Project URL"
+          value={projectUrl}
+          onChange={(e) => setProjectUrl(e.target.value)}
+          className="w-full border p-2 rounded mb-3"
+        />
 
+        {/* Extra Fields in Edit Mode */}
         {editProject && (
           <>
             <input type="text" placeholder="Preprod URL" value={preprodUrl} onChange={(e) => setPreprodUrl(e.target.value)} className="w-full border p-2 rounded mb-3" />

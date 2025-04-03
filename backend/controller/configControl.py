@@ -129,3 +129,20 @@ async def update_project(uuid: str, project: ProjectCreate):
         "pre_prod_url": existing_project.pre_prod_url,
         "pg_url": existing_project.pg_url
     }
+
+
+
+
+
+@router.delete("/projects/delete/{uuid}")
+async def delete_project(uuid: str):
+    try:
+        db = next(get_db())
+        project = db.query(ProjectInfo).filter(ProjectInfo.uuid == uuid).first()
+        if not project:
+            raise HTTPException(status_code=404, detail="Project not found")
+        db.delete(project)
+        db.commit()
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500, detail="Something went wrong...")
+    return {"message": "Project deleted successfully"}
