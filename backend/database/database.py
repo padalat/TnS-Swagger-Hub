@@ -23,9 +23,9 @@ class ProjectInfo(Base):
     uuid = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     projectname = Column(String(255), nullable=False)
     team_name = Column(String(255), nullable=False)  
-    prod_url = Column(String(255), unique=True, nullable=True)
-    pre_prod_url = Column(String(255), unique=True, nullable=True)
-    pg_url = Column(String(255), unique=True, nullable=True)
+    prod_url = Column(String(255),  nullable=True)
+    pre_prod_url = Column(String(255),  nullable=True)
+    pg_url = Column(String(255),  nullable=True)
     create_time = Column(DateTime, default=datetime.utcnow)
 
 Base.metadata.create_all(bind=engine)

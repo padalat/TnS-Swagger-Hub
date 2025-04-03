@@ -85,6 +85,7 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
         <Loader />
       ) : (
         <>
+        
           <div className="w-full mb-4 flex justify-center items-center h-[40px] gap-2 relative">
             <input
               type="text"
@@ -99,10 +100,12 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
             >
               +
             </button>
+            
+            
             {search && (
               <div className="absolute top-full left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto">
-                {filteredProjects.length === 0 ? (
-                  <p className="p-2 text-gray-500">No matching projects</p>
+                {(filteredProjects.length === 0 || projects.length === 0) ? (
+                  <p className="p-2">No matching projects</p>
                 ) : (
                   filteredProjects.map((project) => (
                     <div
@@ -156,6 +159,11 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
                 </li>
               ))
             )}
+          </ul>
+          <ul>
+          {(projects.length === 0) && (
+                  <p className="p-2 text-center">No projects found</p>
+                )}
           </ul>
         </>
       )}

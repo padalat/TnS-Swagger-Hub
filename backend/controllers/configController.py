@@ -61,7 +61,8 @@ async def add_project(project):
         db.add(new_project)
         db.commit()
         db.refresh(new_project)
-    except SQLAlchemyError:
+    except SQLAlchemyError as e:
+        print(e)
         raise HTTPException(status_code=500, detail="Something went wrong...")
     return {
         "uuid": new_project.uuid,
