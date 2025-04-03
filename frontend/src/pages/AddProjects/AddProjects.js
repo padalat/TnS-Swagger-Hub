@@ -35,9 +35,10 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             projectname: projectName,
-            preprodUrl,
-            prodUrl,
-            pgUrl,
+            team_name:"TnS",
+            pre_prod_url:preprodUrl,
+            prod_url:prodUrl,
+            pg_url:pgUrl,
           }),
         });
 
@@ -58,9 +59,10 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             projectname: projectName,
-            preprodUrl,
-            prodUrl,
-            pgUrl,
+            team_name:"TnS",
+            pre_prod_url:preprodUrl,
+            prod_url:prodUrl,
+            pg_url:pgUrl,
           }),
         });
 

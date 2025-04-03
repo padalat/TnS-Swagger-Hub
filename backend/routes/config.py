@@ -11,7 +11,7 @@ from pydantic import BaseModel
 class ProjectCreate(BaseModel):
     projectname: str
     team_name: str
-    prod_url: str
+    prod_url: str = None
     pre_prod_url: str = None
     pg_url: str = None
 
