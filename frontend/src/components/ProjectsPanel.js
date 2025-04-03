@@ -51,8 +51,9 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
     });
   };
 
-  const handleDelete = async (projectUuid) => {
+  const handleDelete = async () => {
     if (!deletePrompt) return;
+    const projectUuid = deletePrompt.uuid;
     if (confirmText !== deletePrompt.projectname) return alert("Project name does not match!");
   
     try {
@@ -146,7 +147,7 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
                       className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 transition-all"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDelete(project.uuid);
+                        setDeletePrompt(project);
                       }}
                     >
                       🗑️

@@ -3,18 +3,15 @@ import { BASE_API } from "../../utils/baseApi";
 
 const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects }) => {
   const [projectName, setProjectName] = useState("");
-  const [projectUrl, setProjectUrl] = useState("");
   const [preprodUrl, setPreprodUrl] = useState("");
   const [prodUrl, setProdUrl] = useState("");
   const [pgUrl, setPgUrl] = useState("");
   const [message, setMessage] = useState("");
 
-  console.log("EDIT ::::: ", editProject);
 
   useEffect(() => {
     if (editProject) {
       setProjectName(editProject.projectname || "");
-      setProjectUrl(editProject.projecturl || "");
       setPreprodUrl(editProject.preprodUrl || "");
       setProdUrl(editProject.prodUrl || "");
       setPgUrl(editProject.pgUrl || "");
@@ -24,7 +21,7 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!projectName || !projectUrl) {
+    if (!projectName || (!preprodUrl && !prodUrl && !pgUrl)) {
       setMessage("Project Name and URL are required.");
       return;
     }
@@ -38,7 +35,6 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             projectname: projectName,
-            projecturl: projectUrl,
             preprodUrl,
             prodUrl,
             pgUrl,
@@ -50,18 +46,18 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
         setProjects((prev) =>
           prev.map((proj) =>
             proj.uuid === editProject.uuid
-              ? { ...proj, projectname: projectName, projecturl: projectUrl, preprodUrl, prodUrl, pgUrl }
+              ? { ...proj, projectname: projectName, preprodUrl, prodUrl, pgUrl }
               : proj
           )
         );
         setMessage("Project updated successfully!");
-      } else {
+      }
+       else {
         response = await fetch(`${BASE_API}/projects/add`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             projectname: projectName,
-            projecturl: projectUrl,
             preprodUrl,
             prodUrl,
             pgUrl,
@@ -71,12 +67,11 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
         data = await response.json();
         if (!response.ok) throw new Error(data.detail || "Failed to add project.");
 
-        onAddProject({ projectname: projectName, projecturl: projectUrl, preprodUrl, prodUrl, pgUrl, uuid: data.uuid });
+        onAddProject({ projectname: projectName, preprodUrl, prodUrl, pgUrl, uuid: data.uuid });
 
         setMessage("Project added successfully!");
       }
       setProjectName("");
-      setProjectUrl("");
       setPreprodUrl("");
       setProdUrl("");
       setPgUrl("");
@@ -85,6 +80,7 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
         setEditProject(null);
       }, 1000);
     } catch (error) {
+      console.log(error)
       setMessage(error.message || "Error processing project. Please try again.");
     }
   };
@@ -98,13 +94,6 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
           placeholder="Project Name"
           value={projectName}
           onChange={(e) => setProjectName(e.target.value)}
-          className="w-full border p-2 rounded mb-3"
-        />
-        <input
-          type="text"
-          placeholder="Project URL"
-          value={projectUrl}
-          onChange={(e) => setProjectUrl(e.target.value)}
           className="w-full border p-2 rounded mb-3"
         />
 

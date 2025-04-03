@@ -13,11 +13,11 @@ const SwaggerHub = () => {
   const location = useLocation();
   const queryParam = new URLSearchParams(location.search).get("id");
   const [swaggerSpec, setSwaggerSpec] = useState(null);
-
+  const env = "prod_url"; // use only "prod_url", "pre_prod_url", "pg_url"
   useEffect(() => {
     if (queryParam) { 
       setLoading(true);
-      fetch(`${BASE_API}/swagger/get/${queryParam}`)
+      fetch(`${BASE_API}/swagger/get/${queryParam}/${encodeURIComponent(env)}`)
         .then((res) => res.json())
         .then((res) => {
           setSwaggerSpec(res.swagger);
