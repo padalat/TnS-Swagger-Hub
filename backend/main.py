@@ -7,8 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from json.decoder import JSONDecodeError
 from database.database import get_db, ProjectInfo
 from pydantic import BaseModel
-from controller.swaggerControl import router as swagger_router
-from controller.configControl import router as config_router
+from routes.swagger import router as swagger_routes
+from routes.config import router as config_routes
 
 app = FastAPI()
 
@@ -20,7 +20,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
-app.include_router(swagger_router)
-app.include_router(config_router)
+app.include_router(swagger_routes)
+app.include_router(config_routes)
