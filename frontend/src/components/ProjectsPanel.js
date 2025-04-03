@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Loader from "./Loader";
@@ -9,6 +10,7 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
+  const [showProjects, setShowProjects] = useState(false);
   const currentId = searchParams.get("id");
   const navigate = useNavigate();
 
@@ -58,7 +60,7 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
     ? projects.filter((project) =>
         project.projectname.toLowerCase().includes(search.toLowerCase())
       )
-    : [];
+    : projects;
 
   return (
     <div className="relative w-[25%] bg-gray-50 p-4 shadow-xl rounded-lg">
@@ -102,43 +104,55 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
               </div>
             )}
           </div>
-          <ul>
-            {error ? (
-              <ErrorMessage error={error} />
-            ) : (
-              projects.map((project, index) => (
-                <li
-                  key={index}
-                  className={`p-3 flex justify-between items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
-                    search && search.toLowerCase() === project.projectname.toLowerCase() ? "bg-blue-200" : ""
-                  }`}
-                  onClick={() => navigate(`?id=${project.uuid}`)}
-                >
-                  <span className="font-medium">{project.projectname}</span>
-                  <div className="flex gap-2">
-                    <button
-                      className="bg-yellow-500 text-white p-2 rounded-md hover:bg-yellow-600 transition-all"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEdit(project);
-                      }}
+
+          {/* Team Section */}
+          <div className="mb-4">
+            <div
+              className="p-3 bg-gray-200 rounded-lg cursor-pointer font-bold"
+              onClick={() => setShowProjects(!showProjects)}
+            >
+              TNS Team {showProjects ? "▼" : "▶"}
+            </div>
+            {showProjects && (
+              <ul className="mt-2">
+                {error ? (
+                  <ErrorMessage error={error} />
+                ) : (
+                  filteredProjects.map((project, index) => (
+                    <li
+                      key={index}
+                      className={`p-3 flex justify-between items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
+                        search && search.toLowerCase() === project.projectname.toLowerCase() ? "bg-blue-200" : ""
+                      }`}
+                      onClick={() => navigate(`?id=${project.uuid}`)}
                     >
-                      ✏️
-                    </button>
-                    <button
-                      className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 transition-all"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(project.uuid);
-                      }}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </li>
-              ))
+                      <span className="font-medium">{project.projectname}</span>
+                      <div className="flex gap-2">
+                        <button
+                          className="bg-yellow-500 text-white p-2 rounded-md hover:bg-yellow-600 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(project);
+                          }}
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600 transition-all"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(project.uuid);
+                          }}
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    </li>
+                  ))
+                )}
+              </ul>
             )}
-          </ul>
+          </div>
         </>
       )}
     </div>
