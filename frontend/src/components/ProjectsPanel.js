@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Loader from "./Loader";
@@ -104,6 +105,7 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
             )}
           </div>
 
+          {/* Team Section */}
           <div className="mb-4">
             <div
               className="p-3 bg-gray-200 rounded-lg cursor-pointer font-bold"
