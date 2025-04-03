@@ -171,14 +171,11 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
                 </li>
               ))
             )}
-          </ul>
-          )}
-          
-          <ul>
-          {(projects.length === 0) && (
+            {(projects.length === 0) && (
                   <p className="p-2 text-center">No projects found</p>
                 )}
           </ul>
+          )}
         </>
       )}
 
