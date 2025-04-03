@@ -13,6 +13,9 @@ def ensure_scheme(url):
 
 
 async def add_project(project):
+    if not project.prod_url and not project.pre_prod_url and not project.pg_url:
+        raise HTTPException(status_code=400, detail="At least one URL must be provided")
+
     if project.prod_url:
         try:
             safe_url = ensure_scheme(project.prod_url)
@@ -89,6 +92,9 @@ async def get_all_projects(team_name: str):
 
 
 async def update_project(uuid: str, project):
+    if not project.prod_url and not project.pre_prod_url and not project.pg_url:
+        raise HTTPException(status_code=400, detail="At least one URL must be provided")
+        
     if project.prod_url:
         try:
             safe_url = ensure_scheme(project.prod_url)
