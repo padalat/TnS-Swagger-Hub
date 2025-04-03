@@ -85,6 +85,8 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
         <Loader />
       ) : (
         <>
+            
+            
         
           <div className="w-full mb-4 flex justify-center items-center h-[40px] gap-2 relative">
             <input
@@ -100,10 +102,11 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
             >
               +
             </button>
+
             
             
             {search && (
-              <div className="absolute top-full left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto">
+              <div className="absolute top-full z-10 left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto">
                 {(filteredProjects.length === 0 || projects.length === 0) ? (
                   <p className="p-2">No matching projects</p>
                 ) : (
@@ -123,14 +126,23 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
               </div>
             )}
           </div>
-          <ul>
+          <div
+              className="p-3 mb-2 bg-gray-200 select-none  rounded-lg cursor-pointer font-bold flex justify-between items-center"
+              onClick={() => setShowProjects(!showProjects)}
+            >
+              <span>TNS Team</span>
+              <span className="ml-auto">{showProjects ? "▼" : "▶"}</span>
+          </div>
+
+          {showProjects && (
+            <ul>
             {error ? (
               <ErrorMessage error={error} />
             ) : (
               projects.map((project, index) => (
                 <li
                   key={index}
-                  className={`p-3 flex justify-between items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
+                  className={`p-3 flex justify-between relative z-5 items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
                     search && search.toLowerCase() === project.projectname.toLowerCase() ? "bg-blue-200" : ""
                   }`}
                   onClick={() => navigate(`?id=${project.uuid}`)}
@@ -160,6 +172,8 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
               ))
             )}
           </ul>
+          )}
+          
           <ul>
           {(projects.length === 0) && (
                   <p className="p-2 text-center">No projects found</p>
@@ -169,7 +183,7 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
       )}
 
       {deletePrompt && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 z-[10] flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-5 rounded-lg shadow-xl w-[400px] text-center">
             <h3 className="text-lg font-bold mb-2">Confirm Deletion</h3>
             <p>Type <b>{deletePrompt.projectname}</b> to confirm deletion:</p>
