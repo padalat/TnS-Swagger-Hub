@@ -43,9 +43,9 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
       isEditing: true,
       projectData: {
         name: project.projectname,
-        preprodUrl: project.preprodUrl || "",
-        prodUrl: project.prodUrl || "",
-        pgUrl: project.pgUrl || "",
+        pre_prod_url: project.pre_prod_url || "",
+        prod_url: project.prod_url || "",
+        pg_url: project.pg_url || "",
         uuid: project.uuid,
       },
     });
@@ -141,6 +141,7 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
                       className="bg-yellow-500 text-white p-2 rounded-md hover:bg-yellow-600 transition-all"
                       onClick={(e) => {
                         e.stopPropagation();
+                        console.log(project)
                         handleEdit(project);
                       }}
                     >

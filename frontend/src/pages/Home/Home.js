@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Swagger from "../../components/Swagger";
 import ProjectsPanel from "../../components/ProjectsPanel";
 import AddProjectForm from "../AddProjects/AddProjects";
@@ -8,6 +8,12 @@ const Home = () => {
   const [editProject, setEditProject] = useState(null); // Tracks selected project for editing
   const [projects, setProjects] = useState([]);
 
+
+  useEffect(()=>{
+    if(!addProject.isEditing)return;
+    
+    console.log(addProject)
+  },[addProject])
   const handleAddProject = (newProject) => {
     setProjects((prev) => [...prev, newProject]);
     setAddProject(false);
@@ -30,7 +36,7 @@ const Home = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
           <div className="bg-white p-6 rounded-lg shadow-lg">
             <AddProjectForm 
-              onAddProject={handleAddProject} 
+              onAddProject={addProject} 
               editProject={editProject} 
               setEditProject={setEditProject} 
               setProjects={setProjects} 

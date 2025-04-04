@@ -7,8 +7,7 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
   const [prodUrl, setProdUrl] = useState("");
   const [pgUrl, setPgUrl] = useState("");
   const [message, setMessage] = useState("");
-
-
+  const [isEdit,setIsEdit]=useState(onAddProject.isEditing);
   useEffect(() => {
     if (editProject) {
       setProjectName(editProject.projectname || "");
@@ -17,6 +16,7 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
       setPgUrl(editProject.pgUrl || "");
     }
   }, [editProject]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -109,7 +109,7 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
         <input
           type="text"
           placeholder="Prod URL"
-          value={prodUrl}
+          value={isEdit ? onAddProject.projectName.prodUrl : ""}
           onChange={(e) => setProdUrl(e.target.value)}
           className="w-full border p-2 rounded mb-3"
         />
@@ -122,7 +122,7 @@ const AddProjectForm = ({ onAddProject, editProject, setEditProject, setProjects
         />
 
         <button onClick={handleSubmit} className="w-full p-2 mt-4 bg-blue-500 text-white rounded">
-          {editProject ? "Update Project" : "Add Project"}
+          {isEdit ? "Update Project" : "Add Project"}
         </button>
 
         {message && <p className="mt-2 text-center text-sm text-gray-700">{message}</p>}
