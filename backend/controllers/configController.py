@@ -93,12 +93,24 @@ async def get_all_projects(team_name: str):
 
 
 async def update_project(uuid: str, project):
-    if not project.prod_url and not project.pre_prod_url and not project.pg_url:
+    # Normalize empty strings to None/null
+    prod_url = project.prod_url if project.prod_url and project.prod_url.strip() else None
+    pre_prod_url = project.pre_prod_url if project.pre_prod_url and project.pre_prod_url.strip() else None
+    pg_url = project.pg_url if project.pg_url and project.pg_url.strip() else None
+    
+    # Check if at least one URL is provided
+    if not prod_url and not pre_prod_url and not pg_url:
         raise HTTPException(status_code=400, detail="At least one URL must be provided")
-        
-    if project.prod_url:
+    
+    # Update project object with normalized values    
+    project.prod_url = prod_url
+    project.pre_prod_url = pre_prod_url
+    project.pg_url = pg_url
+    
+    # Validate URLs if they're provided
+    if prod_url:
         try:
-            safe_url = ensure_scheme(project.prod_url)
+            safe_url = ensure_scheme(prod_url)
             response = requests.get(safe_url, verify=False)
             response.raise_for_status()
             response.json()
@@ -107,9 +119,9 @@ async def update_project(uuid: str, project):
         except ValueError as exc:
             raise HTTPException(status_code=400, detail="Invalid JSON response from prod url")
 
-    if project.pre_prod_url:
+    if pre_prod_url:
         try:
-            safe_url = ensure_scheme(project.pre_prod_url)
+            safe_url = ensure_scheme(pre_prod_url)
             r_pre = requests.get(safe_url, verify=False)
             r_pre.raise_for_status()
             r_pre.json()
@@ -118,9 +130,9 @@ async def update_project(uuid: str, project):
         except ValueError as exc:
             raise HTTPException(status_code=400, detail="Invalid JSON response from pre_prod_url")
 
-    if project.pg_url:
+    if pg_url:
         try:
-            safe_url = ensure_scheme(project.pg_url)
+            safe_url = ensure_scheme(pg_url)
             r_pg = requests.get(safe_url, verify=False)
             r_pg.raise_for_status()
             r_pg.json()
@@ -135,9 +147,9 @@ async def update_project(uuid: str, project):
         if not existing_project:
             raise HTTPException(status_code=404, detail="Project not found")
         existing_project.projectname = project.projectname
-        existing_project.prod_url = project.prod_url
-        existing_project.pre_prod_url = project.pre_prod_url
-        existing_project.pg_url = project.pg_url
+        existing_project.prod_url = prod_url
+        existing_project.pre_prod_url = pre_prod_url
+        existing_project.pg_url = pg_url
         db.commit()
         db.refresh(existing_project)
     except SQLAlchemyError:

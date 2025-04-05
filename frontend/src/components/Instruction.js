@@ -1,18 +1,42 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const Instruction = ({ onClose }) => {
   const [selectedImage, setSelectedImage] = useState(null);
+  
+  // Close on escape key
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        if (selectedImage) {
+          setSelectedImage(null);
+        } else {
+          onClose();
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [selectedImage, onClose]);
+  
+  // Prevent body scrolling while modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, []);
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      {/* Instruction Box */}
-      <div className="bg-white w-[70%] p-6 rounded-lg shadow-lg relative h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[60]" onClick={onClose}>
+      {/* Instruction Box - Stop propagation to prevent closing when clicking inside */}
+      <div className="bg-white w-[70%] p-6 rounded-lg shadow-lg relative h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
         {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-black hover:text-gray-300 px-2 transition duration-200 text-2xl"
         >
-          x
+          ×
         </button>
 
         {/* Title */}
@@ -82,14 +106,17 @@ const Instruction = ({ onClose }) => {
 
       {/* Enlarged Image Overlay */}
       {selectedImage && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-50">
-          <div className="relative">
+        <div 
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-[70]"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div className="relative" onClick={e => e.stopPropagation()}>
             {/* Close Button for Enlarged Image */}
             <button
               onClick={() => setSelectedImage(null)}
               className="absolute top-0 right-2 text-white text-3xl hover:text-red-500 transition"
             >
-              x
+              ×
             </button>
 
             {/* Full-Size Image */}
