@@ -202,23 +202,54 @@ async def patch_event_configs(request):
             error_content = {"error": str(e)}
         return JSONResponse(status_code=500, content=error_content)
 
+
+
+
+
+
+
 async def delete_event_configs(request):
     incoming_headers = dict(request.headers)
     swagger_url = incoming_headers.get("swagger_url")
+
     if not swagger_url:
-        raise Exception("Missing 'swagger_url' in headers")
+        return JSONResponse(status_code=400, content={"error": "Missing 'swagger_url' in headers"})
+
     match = re.search(r'https?://([\d\.]+)', swagger_url)
     if not match:
-        raise Exception("Invalid 'swagger_url' format")
+        return JSONResponse(status_code=400, content={"error": "Invalid 'swagger_url' format"})
+
     host = match.group(1)
-    headers = incoming_headers.copy()
+    headers = {key: value for key, value in incoming_headers.items() if key.lower() not in ["host", "content-length"]}
     headers["host"] = host
     headers["referer"] = f"http://{host}/swagger-ui/index.html"
-    headers.pop("content-length", None)
+
+    # Read request body
+    payload_bytes = await request.body()
+
+    if payload_bytes:
+        try:
+            payload = json.loads(payload_bytes.decode("utf-8"))  # Convert bytes -> dict
+        except json.JSONDecodeError:
+            return JSONResponse(status_code=400, content={"error": "Invalid JSON payload"})
+    else:
+        payload = None  # No payload
+
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.delete(swagger_url, headers=headers)
+            if payload:
+                response = await client.request(
+                    method="DELETE",
+                    url=swagger_url,
+                    json=payload,
+                    headers=headers
+                )
+            else:
+                response = await client.delete(swagger_url, headers=headers)
+
         response.raise_for_status()
+
+        # Handle response content
         if response.text.strip():
             try:
                 return response.json()
@@ -226,16 +257,9 @@ async def delete_event_configs(request):
                 return {"message": "Success", "data": response.text}
         else:
             return {"message": "Success", "data": None}
-    except httpx.HTTPStatusError as e:
-        try:
-            error_content = json.loads(e.response.text)
-        except JSONDecodeError:
-            error_content = {"error": e.response.text}
-        return JSONResponse(status_code=e.response.status_code, content=error_content)
-    except httpx.RequestError as e:
-        try:
-            error_content = json.loads(str(e))
-        except JSONDecodeError:
-            error_content = {"error": str(e)}
-        return JSONResponse(status_code=500, content=error_content)
 
+    except httpx.HTTPStatusError as e:
+        return JSONResponse(status_code=e.response.status_code, content={"error": e.response.text})
+
+    except httpx.RequestError as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
