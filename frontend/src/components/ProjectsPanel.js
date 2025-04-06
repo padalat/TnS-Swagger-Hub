@@ -68,6 +68,8 @@ const ProjectsPanel = ({setSelectedProject, projects, setProjects, setAddProject
       console.log("Project deleted successfully from server.");
       setDeletePrompt(null);
       setConfirmText("");
+      navigate("/");
+
     } catch (error) {
       console.error("Error deleting project:", error);
     }
@@ -144,7 +146,7 @@ const ProjectsPanel = ({setSelectedProject, projects, setProjects, setAddProject
                 <li
                   key={index}
                   className={`p-3 flex justify-between relative z-5 items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
-                    search && search.toLowerCase() === project.projectname.toLowerCase() ? "bg-blue-200" : ""
+                    project?.uuid && project.uuid === currentId ? "bg-gray-300" : ""
                   }`}
                   onClick={() => {navigate(`?id=${project.uuid}`); setSelectedProject(project)}}
                 >
