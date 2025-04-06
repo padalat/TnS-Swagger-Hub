@@ -79,7 +79,7 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
     : [];
 
   return (
-    <div className="relative w-[25%] bg-gray-50 p-4 shadow-xl rounded-lg">
+    <div className="relative w-[25%] bg-gray-50 p-4 shadow-xl rounded-lg ">
       <h2 className="text-lg font-bold mb-4 text-center">Projects</h2>
       {loading ? (
         <Loader />
@@ -109,6 +109,21 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
               <div className="absolute top-full z-10 left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto">
                 {(filteredProjects.length === 0 || projects.length === 0) ? (
                   <p className="p-2">No matching projects</p>
+          </div>
+
+          {/* Team Section */}
+          <div className="mb-4">
+            <div
+              className="p-3 bg-gray-200 rounded-lg cursor-pointer font-bold flex justify-between items-center select-none"
+              onClick={() => setShowProjects(!showProjects)}
+            >
+              <span>TNS Team</span>
+              <span className="ml-auto">{showProjects ? "▼" : "▶"}</span>
+            </div>
+            {showProjects && (
+              <ul className="mt-2">
+                {error ? (
+                  <ErrorMessage error={error} />
                 ) : (
                   filteredProjects.map((project) => (
                     <div
