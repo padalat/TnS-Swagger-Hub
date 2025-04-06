@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import Loader from "./Loader";
 import ErrorMessage from "./ErrorMessage";
 import { BASE_API } from "../utils/baseApi";
+import { FiMoreVertical } from "react-icons/fi";
 
 const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProject, setEditProject, refreshKey }) => {
   const [search, setSearch] = useState("");
@@ -12,6 +13,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   const [showProjects, setShowProjects] = useState(true);
   const [deletePrompt, setDeletePrompt] = useState(null);
   const [confirmText, setConfirmText] = useState("");
+  const [activeMenu, setActiveMenu] = useState(null);
   const currentId = searchParams.get("id");
   const navigate = useNavigate();
 
@@ -38,6 +40,17 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     fetchProjects();
   }, [refreshKey]);
 
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setActiveMenu(null);
+    };
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
   const handleEdit = (project) => {
     setAddProject({
       isEditing: true,
@@ -50,6 +63,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
         team_name: project.team_name || "TnS"
       },
     });
+    setActiveMenu(null);
   };
 
   const handleDelete = async () => {
@@ -77,6 +91,11 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     }
   };
 
+  const toggleMenu = (e, projectId) => {
+    e.stopPropagation();
+    setActiveMenu(activeMenu === projectId ? null : projectId);
+  };
+
   const filteredProjects = search
     ? projects.filter((p) =>
         p.projectname.toLowerCase().includes(search.toLowerCase())
@@ -90,7 +109,6 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
         <Loader />
       ) : (
         <>
-          {/* Search Bar */}
           <div className="w-full mb-4 flex justify-center items-center h-[40px] gap-2 relative">
             <input
               type="text"
@@ -106,7 +124,6 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
               +
             </button>
 
-            {/* Search Results Dropdown */}
             {search && (
               <div className="absolute top-full z-10 left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto">
                 {filteredProjects.length === 0 ? (
@@ -133,65 +150,87 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
           {/* Team Section */}
           <div className="mb-4">
             <div
-              className="p-3 bg-gray-200 rounded-lg cursor-pointer font-bold flex justify-between items-center select-none"
+              className="p-3 mb-2 bg-gray-200 rounded-lg cursor-pointer font-bold flex justify-between items-center select-none"
               onClick={() => setShowProjects(!showProjects)}
             >
               <span>TNS Team</span>
               <span className="ml-auto">{showProjects ? "▼" : "▶"}</span>
             </div>
 
-            {showProjects && (
-              <ul className="mt-2">
-                {error ? (
-                  <ErrorMessage error={error} />
-                ) : (
-                  projects.map((project) => (
-                    <li
-                      key={project.uuid}
-                      className={`p-3 flex justify-between items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
-                        project.uuid === currentId ? "bg-gray-300" : ""
-                      }`}
-                      onClick={() => {
-                        navigate(`?id=${project.uuid}`);
-                        setSelectedProject(project);
-                      }}
-                    >
-                      <span className="font-medium">{project.projectname}</span>
-                      <div className="flex gap-2">
-                        <button
-                          className="bg-yellow-500 text-white p-2 rounded-md hover:bg-yellow-600"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit(project);
-                          }}
+          {showProjects && (
+            <ul>
+              {error ? (
+                <ErrorMessage error={error} />
+              ) : (
+                projects.map((project) => (
+                  <li
+                    key={project.uuid}
+                    className={`p-3 mb-2 relative  last:mb-0 flex justify-between items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${project?.uuid && project.uuid !== currentId ? "z-0" : "z-[20]"}`}
+                    onClick={() => {
+                      navigate(`?id=${project.uuid}`);
+                      setSelectedProject(project);
+                    }}
+                    style={{
+                      backgroundColor: project?.uuid && project.uuid === currentId ? "#e5e7eb" : ""
+                    }}
+                  >
+                    <span className="font-medium">{project.projectname}</span>
+                    
+                    <div className="relative">
+                      <button
+                        className={`p-2 rounded-md hover:bg-gray-300 transition-all ${currentId === project.uuid ? "block" : "hidden"}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleMenu(e, project.uuid);
+                        }}
+                      >
+                        <FiMoreVertical size={20} />
+                      </button>
+                      
+                      {activeMenu === project.uuid && (
+                        <div 
+                          className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-300 rounded-md shadow-lg z-[100] py-1"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          ✏️
-                        </button>
-                        <button
-                          className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setDeletePrompt(project);
-                          }}
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    </li>
-                  ))
-                )}
-                {projects.length === 0 && (
-                  <p className="p-2 text-center">No projects found</p>
-                )}
-              </ul>
-            )}
+                          <button
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors duration-200 flex items-center gap-2 m-0.5 rounded-md"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(project);
+                            }}
+                          >
+                            <span className="text-yellow-500">✏️</span> Edit
+                          </button>
+                          <button
+                            className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors duration-200 flex items-center gap-2 m-0.5 rounded-md"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenu(null);
+                              setDeletePrompt(project);
+                            }}
+                          >
+                            <span className="text-red-500">🗑️</span> Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </li>
+                ))
+              )}
+              {projects.length === 0 && (
+                <p className="p-2 text-center">No projects found</p>
+              )}
+            </ul>
+            
+
+          )}
           </div>
         </>
       )}
 
       {/* Delete Confirmation Modal */}
       {deletePrompt && (
-        <div className="fixed inset-0 z-[10] flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-5 rounded-lg shadow-xl w-[400px] text-center">
             <h3 className="text-lg font-bold mb-2">Confirm Deletion</h3>
             <p>Type <b>{deletePrompt.projectname}</b> to confirm deletion:</p>
