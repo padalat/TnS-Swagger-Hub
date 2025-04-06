@@ -35,31 +35,37 @@ const SwaggerHub = ({ selectedProject }) => {
       setAvailableEnvs(envs);
 
       if (envs.length > 0) {
-        if (!selectedEnv || !envs.some(env => env.key === selectedEnv.key)) {
+        // Check if currently selected env is still valid
+        const currentEnvStillValid = selectedEnv && envs.some(env => env.key === selectedEnv.key);
+        if (!currentEnvStillValid) {
           setSelectedEnv(envs[0]);
         }
       } else {
         setSelectedEnv(null);
+        setSwaggerSpec(null);
+        setError("No valid environment URLs found for this project");
       }
     } else {
       setAvailableEnvs([]);
       setSelectedEnv(null);
+      setSwaggerSpec(null);
+      setError(null);
     }
   }, [selectedProject]);
-
-  // Reset swagger spec when selected environment changes
-  useEffect(() => {
-    if (selectedEnv !== null) {
-      setSwaggerSpec(null);
-    }
-  }, [selectedEnv]);
 
   // Fetch Swagger spec when environment changes
   useEffect(() => {
     if (selectedEnv && selectedProject?.uuid) {
       setLoading(true);
       setError(null);
-
+      
+      // Verify the environment key exists and has a valid value
+      if (!selectedProject[selectedEnv.key]) {
+        setError(`No valid URL found for ${selectedEnv.name.toUpperCase()} environment`);
+        setLoading(false);
+        return;
+      }
+      
       fetch(`${BASE_API}/swagger/get/${selectedProject.uuid}/${encodeURIComponent(selectedEnv.key)}`)
         .then((res) => {
           if (!res.ok) {
@@ -79,7 +85,7 @@ const SwaggerHub = ({ selectedProject }) => {
           if (err.message.includes("No swagger")) {
             setError(`No valid Swagger specification found for ${selectedEnv.name.toUpperCase()}`);
           } else if (err.message.includes("Failed to fetch") || err.message.includes("NetworkError")) {
-            setError(`Cannot connect to the API. Please check your network connection.`);
+            setError(`Cannot connect to the API. Please check your network connection or CORS settings.`);
           } else {
             setError(`Failed to load Swagger spec: ${err.message}`);
           }
@@ -187,6 +193,8 @@ const SwaggerHub = ({ selectedProject }) => {
           spec={swaggerSpec} 
           requestInterceptor={enhancedRequestInterceptor}
         />
+      ) : selectedEnv ? (
+        <Loader />
       ) : (
         <WelcomeMessage />
       )}
