@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import Swagger from "../../components/Swagger";
 import ProjectsPanel from "../../components/ProjectsPanel";
 import AddProjectForm from "../../components/AddProjects";
+import WelcomeMessage from "../../components/WelcomeMessage";
 import { BASE_API } from "../../utils/baseApi";
 
 const Home = () => {
@@ -26,51 +27,40 @@ const Home = () => {
       if (project) {
         setSelectedProject(project);
       } else {
-        // Reset selectedProject if no matching project found
         setSelectedProject(null);
       }
     } else {
-      // Reset selectedProject if no projectId in URL
       setSelectedProject(null);
     }
   }, [projectId, projects]);
 
-  // Enhanced handler for adding projects
   const handleAddProject = (newProject) => {
     setProjects(prev => {
       const updated = [...prev, newProject];
-      // If this is the currently selected project, update selectedProject
       if (projectId === newProject.uuid) {
         setSelectedProject(newProject);
       }
       return updated;
     });
-    
     setAddProject(false);
     setEditProject(null);
     refreshProjects();
   };
 
-  // Enhanced handler for updating projects
   const handleUpdateProject = (updatedProject) => {
     setProjects(prev => {
       const updated = prev.map(p => 
         p.uuid === updatedProject.uuid ? updatedProject : p
       );
-      
-      // If this is the currently selected project, update selectedProject
       if (projectId === updatedProject.uuid) {
         setSelectedProject(updatedProject);
       }
-      
       return updated;
     });
-    
     setAddProject(false);
     setEditProject(null);
   };
 
-  // Enhanced handler for editing projects
   const handleEdit = (project) => {
     const editData = {
       isEditing: true,
@@ -83,7 +73,6 @@ const Home = () => {
         team_name: project.team_name || "TnS"
       }
     };
-    
     setEditProject(project);
     setAddProject(editData);
   };
@@ -107,7 +96,7 @@ const Home = () => {
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50">
           <AddProjectForm 
             onAddProject={handleAddProject}
-            onUpdateProject={handleUpdateProject} // Add this new prop for updates
+            onUpdateProject={handleUpdateProject}
             editProject={editProject} 
             setEditProject={setEditProject} 
             setProjects={setProjects} 

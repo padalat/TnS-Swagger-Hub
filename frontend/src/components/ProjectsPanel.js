@@ -27,6 +27,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
         if (!res.ok) {
           throw new Error(`${res.status}: ${res.statusText}`);
         }
+
         const data = await res.json();
         setProjects(data.sort((a, b) => a.projectname.localeCompare(b.projectname)));
       } catch (err) {
@@ -35,6 +36,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
         setLoading(false);
       }
     }
+
     fetchProjects();
   }, [refreshKey]);
 
@@ -67,22 +69,25 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   const handleDelete = async () => {
     if (!deletePrompt) return;
     const projectUuid = deletePrompt.uuid;
-    if (confirmText !== deletePrompt.projectname) return alert("Project name does not match!");
+
+    if (confirmText !== deletePrompt.projectname) {
+      alert("Project name does not match!");
+      return;
+    }
 
     try {
       const res = await fetch(`${BASE_API}/projects/delete/${projectUuid}`, {
         method: "DELETE",
       });
-      if (!res.ok) {
-        throw new Error("Failed to delete project");
-      }
-      setProjects((prevProjects) => prevProjects.filter((p) => p.uuid !== projectUuid));
-      console.log("Project deleted successfully from server.");
+
+      if (!res.ok) throw new Error("Failed to delete project");
+
+      setProjects((prev) => prev.filter((p) => p.uuid !== projectUuid));
       setDeletePrompt(null);
       setConfirmText("");
       navigate("/");
-    } catch (error) {
-      console.error("Error deleting project:", error);
+    } catch (err) {
+      console.error("Error deleting project:", err);
     }
   };
 
@@ -92,13 +97,13 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   };
 
   const filteredProjects = search
-    ? projects.filter((project) =>
-        project.projectname.toLowerCase().includes(search.toLowerCase())
+    ? projects.filter((p) =>
+        p.projectname.toLowerCase().includes(search.toLowerCase())
       )
     : [];
 
   return (
-    <div className="relative w-[25%] bg-gray-50 p-4 shadow-xl rounded-lg">
+    <div className="relative w-[25%] bg-gray-50 p-4 shadow-xl">
       <h2 className="text-lg font-bold mb-4 text-center">Projects</h2>
       {loading ? (
         <Loader />
@@ -121,7 +126,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 
             {search && (
               <div className="absolute top-full z-10 left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto">
-                {(filteredProjects.length === 0 || projects.length === 0) ? (
+                {filteredProjects.length === 0 ? (
                   <p className="p-2">No matching projects</p>
                 ) : (
                   filteredProjects.map((project) => (
@@ -131,6 +136,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                       onClick={() => {
                         setSearch("");
                         navigate(`?id=${project.uuid}`);
+                        setSelectedProject(project);
                       }}
                     >
                       {project.projectname}
@@ -140,14 +146,16 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
               </div>
             )}
           </div>
-          
-          <div
-            className="p-3 mb-2 bg-gray-200 select-none rounded-lg cursor-pointer font-bold flex justify-between items-center"
-            onClick={() => setShowProjects(!showProjects)}
-          >
-            <span>TNS Team</span>
-            <span className="ml-auto">{showProjects ? "▼" : "▶"}</span>
-          </div>
+
+          {/* Team Section */}
+          <div className="mb-4">
+            <div
+              className="p-3 mb-2 bg-gray-200 rounded-lg cursor-pointer font-bold flex justify-between items-center select-none"
+              onClick={() => setShowProjects(!showProjects)}
+            >
+              <span>TNS Team</span>
+              <span className="ml-auto">{showProjects ? "▼" : "▶"}</span>
+            </div>
 
           {showProjects && (
             <ul>
@@ -170,8 +178,11 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                     
                     <div className="relative">
                       <button
-                        className={`p-2 rounded-md hover:bg-gray-300 transition-all  ${currentId === project.uuid ? "block" :"hidden"}`}
-                        onClick={(e) => toggleMenu(e, project.uuid)}
+                        className={`p-2 rounded-md hover:bg-gray-300 transition-all ${currentId === project.uuid ? "block" : "hidden"}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleMenu(e, project.uuid);
+                        }}
                       >
                         <FiMoreVertical size={20} />
                       </button>
@@ -210,10 +221,14 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                 <p className="p-2 text-center">No projects found</p>
               )}
             </ul>
+            
+
           )}
+          </div>
         </>
       )}
 
+      {/* Delete Confirmation Modal */}
       {deletePrompt && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-5 rounded-lg shadow-xl w-[400px] text-center">
@@ -247,3 +262,4 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 };
 
 export default ProjectsPanel;
+
