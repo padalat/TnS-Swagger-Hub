@@ -1,30 +1,67 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
+
+
 const NavBar = () => {
+  const [searchParams] = useSearchParams();
+  const currentId = searchParams.get("id");
   const navigate = useNavigate();
-  const [_, setSearchParams] = useSearchParams();
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+
   
-  // Reset application state and navigation
-  const handleHomeClick = () => {
-    navigate('/', { replace: true });
-    setSearchParams({});
-    // You can reset other global state here if needed
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000);
+    
+    return () => clearInterval(timer);
+  }, []);
+  
+
+
+  const formatDate = () => {
+    const options = { 
+      weekday: 'long',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    };
+    return currentTime.toLocaleDateString('en-US', options);
   };
   
   return (
-    <nav className='w-full bg-[#1b1b1b] text-white h-[70px] flex px-5 py-2 justify-center items-center'>
-      <div className='w-[90%]'>
-        <h1 className='text-[20px] font-bold'>
-          <button 
-            onClick={handleHomeClick}
-            className="text-white hover:text-gray-300 transition-colors"
-          >
-            TnS SwaggerHub
-          </button>
-        </h1>
+    <div className="flex  bg-gray-50 w-full">
+   
+    <aside className="w-[20%] bg-white shadow-lg">
+      <div className="p-4 border-b flex items-center cursor-pointer" onClick={()=>{navigate("/")}}>
+        <div className="flex-shrink-0 mr-3">
+          <div className="h-8 w-8 rounded-md bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">T</span>
+          </div>
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-gray-800">TnS Swagger Hub</h1>
+          <p className="text-xs text-gray-500">Swagger Documentation</p>
+        </div>
       </div>
-    </nav>
+      
+
+    </aside>
+    
+
+    <div className="flex-1 flex flex-col">
+      <header className="p-4 bg-white shadow-md flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-gray-800">{currentId ? " Swagger" : "Dashboard"}</h1>
+          <p className="text-xs text-gray-500">{formatDate()}</p>
+        </div>
+      </header>
+
+    </div>
+  </div>
+
   );
 }
 
