@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Loader from "./Loader";
 import ErrorMessage from "./ErrorMessage";
@@ -14,6 +14,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   const [deletePrompt, setDeletePrompt] = useState(null);
   const [confirmText, setConfirmText] = useState("");
   const [activeMenu, setActiveMenu] = useState(null);
+  const menuRef = useRef(null);
   const currentId = searchParams.get("id");
   const navigate = useNavigate();
 
@@ -41,8 +42,11 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   }, [refreshKey]);
 
   useEffect(() => {
-    const handleClickOutside = () => {
-      setActiveMenu(null);
+    const handleClickOutside = (event) => {
+      // Only close the menu if clicked outside the menu
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setActiveMenu(null);
+      }
     };
     
     document.addEventListener("mousedown", handleClickOutside);
@@ -51,7 +55,8 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     };
   }, []);
 
-  const handleEdit = (project) => {
+  const handleEdit = (project, e) => {
+    if (e) e.stopPropagation();
     setAddProject({
       isEditing: true,
       projectData: {
@@ -89,6 +94,12 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     } catch (err) {
       console.error("Error deleting project:", err);
     }
+  };
+
+  const handleMenuClick = (e, projectId) => {
+    e.stopPropagation();
+    e.preventDefault();
+    setActiveMenu(activeMenu === projectId ? null : projectId);
   };
 
   const toggleMenu = (e, projectId) => {
@@ -178,17 +189,15 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                     
                     <div className="relative">
                       <button
-                        className={`p-2 rounded-md hover:bg-gray-300 transition-all ${currentId === project.uuid ? "block" : "hidden"}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleMenu(e, project.uuid);
-                        }}
+                        className={`p-2 rounded-md hover:bg-gray-300 transition-all  ${currentId === project.uuid ? "block" :"hidden"}`}
+                        onClick={(e) => handleMenuClick(e, project.uuid)}
                       >
                         <FiMoreVertical size={20} />
                       </button>
                       
                       {activeMenu === project.uuid && (
                         <div 
+                          ref={menuRef}
                           className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-300 rounded-md shadow-lg z-[100] py-1"
                           onClick={(e) => e.stopPropagation()}
                         >
@@ -196,15 +205,17 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                             className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors duration-200 flex items-center gap-2 m-0.5 rounded-md"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleEdit(project);
+                              e.preventDefault();
+                              handleEdit(project, e);
                             }}
                           >
-                            <span className="text-yellow-500">✏️</span> Edit
+                          <span className="text-yellow-500">✏️</span> Edit
                           </button>
                           <button
                             className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors duration-200 flex items-center gap-2 m-0.5 rounded-md"
                             onClick={(e) => {
                               e.stopPropagation();
+                              e.preventDefault();
                               setActiveMenu(null);
                               setDeletePrompt(project);
                             }}
@@ -230,7 +241,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 
       {/* Delete Confirmation Modal */}
       {deletePrompt && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[30]">
           <div className="bg-white p-5 rounded-lg shadow-xl w-[400px] text-center">
             <h3 className="text-lg font-bold mb-2">Confirm Deletion</h3>
             <p>Type <b>{deletePrompt.projectname}</b> to confirm deletion:</p>
