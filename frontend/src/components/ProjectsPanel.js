@@ -5,7 +5,7 @@ import ErrorMessage from "./ErrorMessage";
 import { BASE_API } from "../utils/baseApi";
 import { FiMoreVertical } from "react-icons/fi";
 
-const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
+const ProjectsPanel = ({setSelectedProject, projects, setProjects, setAddProject, setEditProject, refreshKey }) => {
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -20,7 +20,7 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
   useEffect(() => {
     async function fetchProjects() {
       try {
-        // const res = await fetch(`${BASE_API}/projects/get/all`);
+        setLoading(true);
         const teamName = "TnS"; // Replace with the actual team name, or get it from state/context
         const res = await fetch(`${BASE_API}/projects/get/all?team_name=${encodeURIComponent(teamName)}`);
 
@@ -36,17 +36,18 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
       }
     }
     fetchProjects();
-  }, []);
+  }, [refreshKey]);
 
   const handleEdit = (project) => {
     setAddProject({
       isEditing: true,
       projectData: {
-        name: project.projectname,
-        preprodUrl: project.preprodUrl || "",
-        prodUrl: project.prodUrl || "",
-        pgUrl: project.pgUrl || "",
         uuid: project.uuid,
+        projectname: project.projectname,
+        pre_prod_url: project.pre_prod_url,
+        prod_url: project.prod_url,
+        pg_url: project.pg_url,
+        team_name: project.team_name || "TnS"
       },
     });
   };
@@ -67,6 +68,8 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
       console.log("Project deleted successfully from server.");
       setDeletePrompt(null);
       setConfirmText("");
+      navigate("/");
+
     } catch (error) {
       console.error("Error deleting project:", error);
     }
@@ -158,9 +161,9 @@ const ProjectsPanel = ({ projects, setProjects, setAddProject }) => {
                 <li
                   key={index}
                   className={`p-3 flex justify-between relative z-5 items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
-                    search && search.toLowerCase() === project.projectname.toLowerCase() ? "bg-blue-200" : ""
+                    project?.uuid && project.uuid === currentId ? "bg-gray-300" : ""
                   }`}
-                  onClick={() => navigate(`?id=${project.uuid}`)}
+                  onClick={() => {navigate(`?id=${project.uuid}`); setSelectedProject(project)}}
                 >
                   <span className="font-medium">{project.projectname}</span>
                   <div className="flex gap-2">
