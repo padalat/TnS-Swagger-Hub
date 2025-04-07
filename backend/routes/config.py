@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from controllers.configController import (
     add_project,
     get_all_projects,
     update_project,
-    delete_project
+    delete_project,
+    get_recent_activities,
+    get_project_statistics
 )
 from pydantic import BaseModel
 
@@ -32,3 +34,13 @@ async def route_update_project(uuid: str, project: ProjectCreate):
 @router.delete("/projects/delete/{uuid}")
 async def route_delete_project(uuid: str):
     return await delete_project(uuid)
+
+@router.get("/activities/recent")
+async def route_get_recent_activities(k: int = Query(10, description="Number of recent activities to retrieve")):
+    """Get the k most recent activities"""
+    return await get_recent_activities(k)
+
+@router.get("/statistics")
+async def route_get_statistics():
+    """Get database statistics including project count"""
+    return await get_project_statistics()

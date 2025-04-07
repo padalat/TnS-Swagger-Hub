@@ -115,6 +115,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
 
         data = await response.json();
         onAddProject ? onAddProject(data) : setProjects(prev => [...prev, data]);
+        navigate("/");
         setMessage("Project added successfully!");
       }
 

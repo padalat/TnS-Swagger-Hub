@@ -140,7 +140,7 @@ const SwaggerHub = ({ selectedProject }) => {
   }
 
   return (
-    <div className="h-full w-full" style={{ padding: "20px" }}>
+    <div className="h-full w-full  " style={{ padding: "20px" }}>
       <div className="flex flex-wrap items-center mb-4 gap-4">
         <div>
           <span className="font-medium">Project:</span>{" "}

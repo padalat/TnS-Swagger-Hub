@@ -1,23 +1,59 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { BASE_API } from "../utils/baseApi";
+import Loader from "./Loader";
 
 const WelcomeMessage = () => {
-  const stats = {
-    totalProjects: 12,
-    apiCalls: 1500,
-    registeredProjects: 8,
+  const [activities, setActivities] = useState([]);
+  const [stats, setStats] = useState({ totalProjects: 60, apiCalls: 1500, registeredProjects: 0 });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch recent activities and statistics when component mounts
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      fetch(`${BASE_API}/activities/recent?k=3`),
+      fetch(`${BASE_API}/statistics`)
+    ])
+      .then(([resActivities, resStats]) => {
+        if (!resActivities.ok || !resStats.ok) {
+          throw new Error("HTTP error!");
+        }
+        return Promise.all([resActivities.json(), resStats.json()]);
+      })
+      .then(([activitiesData, statsData]) => {
+        setActivities(activitiesData);
+        setStats({
+          totalProjects: 60,
+          apiCalls: 1500,
+          registeredProjects: statsData.registered_projects
+        });
+        setError(null);
+      })
+      .catch((err) => {
+        console.error("Error fetching data:", err);
+        setError(`Failed to load data: ${err.message}`);
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Format timestamp to readable format (convert from ISO to local time)
+  const formatTimestamp = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
   };
-
-  const recentActivity = [
-    "Fixed bug in authentication API",
-    "Added new endpoint for user profiles",
-    "Updated Swagger documentation for payment API",
-  ];
-
   
   return (
     <div className="flex flex-col gap-8 p-6 min-h-screen">
       {/* Header */}
-      <div className="bg-white  rounded-lg p-6 text-center">
+      <div className="bg-white rounded-lg p-6 text-center">
         <h1 className="text-4xl font-bold text-gray-800">Welcome to TnS SwaggerHub</h1>
         <p className="text-lg text-gray-600 mt-2">Crafting Innovative API Journeys</p>
       </div>
@@ -41,17 +77,34 @@ const WelcomeMessage = () => {
         </div>
       </div>
 
-      {/* Recent Activity Section */}
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
-        <ul className="list-disc list-inside text-gray-600">
-          {recentActivity.map((activity, index) => (
-            <li key={index} className="text-sm mb-2">
-              {activity}
-            </li>
-          ))}
-        </ul>
-      </div>
+      {/* Recent Activity Section - Only show if there are activities */}
+      {loading ? (
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
+          <div className="flex justify-center py-4">
+            <Loader />
+          </div>
+        </div>
+      ) : error ? (
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
+          <p className="text-red-500">{error}</p>
+        </div>
+      ) : activities && activities.length > 0 ? (
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
+          <ul className="text-gray-600">
+            {activities.map((activity) => (
+              <li key={activity.uuid} className="py-3">
+                <div className="flex flex-col md:flex-row md:justify-between">
+                  <span className="font-medium text-sm text-gray-800">{activity.message}</span>
+                  <span className="text-sm text-gray-500">{formatTimestamp(activity.timestamp)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
     </div>
   );
 };

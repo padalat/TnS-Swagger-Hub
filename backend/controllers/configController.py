@@ -1,8 +1,9 @@
 import requests
-from database.database import get_db, ProjectInfo
+from database.database import get_db, ProjectInfo, ActivityLog, IST
 from sqlalchemy.exc import SQLAlchemyError
 import requests.exceptions
 from fastapi import HTTPException
+from datetime import datetime
 
 
 def ensure_scheme(url):
@@ -61,6 +62,15 @@ async def add_project(project):
         db.add(new_project)
         db.commit()
         db.refresh(new_project)
+        
+        # Log the activity with IST timestamp
+        activity = ActivityLog(
+            message=f"Project '{project.projectname}' added",
+            project_uuid=new_project.uuid,
+            timestamp=datetime.now(IST)
+        )
+        db.add(activity)
+        db.commit()
     except SQLAlchemyError as e:
         print(e)
         raise HTTPException(status_code=500, detail="Something went wrong...")
@@ -152,6 +162,15 @@ async def update_project(uuid: str, project):
         existing_project.pg_url = pg_url
         db.commit()
         db.refresh(existing_project)
+        
+        # Log the activity with IST timestamp
+        activity = ActivityLog(
+            message=f"Project '{existing_project.projectname}' updated",
+            project_uuid=existing_project.uuid,
+            timestamp=datetime.now(IST)
+        )
+        db.add(activity)
+        db.commit()
     except SQLAlchemyError:
         raise HTTPException(status_code=500, detail="Something went wrong...")
     return {
@@ -164,15 +183,59 @@ async def update_project(uuid: str, project):
     }
 
 
-
 async def delete_project(uuid: str):
     try:
         db = next(get_db())
         project = db.query(ProjectInfo).filter(ProjectInfo.uuid == uuid).first()
         if not project:
             raise HTTPException(status_code=404, detail="Project not found")
+            
+        # Store project name before deletion for activity log
+        project_name = project.projectname
+        project_uuid = project.uuid
+        
         db.delete(project)
         db.commit()
-    except SQLAlchemyError:
+        
+        # Log the activity with IST timestamp
+        activity = ActivityLog(
+            message=f"Project '{project_name}' deleted",
+            project_uuid=project_uuid,
+            timestamp=datetime.now(IST)
+        )
+        db.add(activity)
+        db.commit()
+    except SQLAlchemyError as e:
+        print(e)
         raise HTTPException(status_code=500, detail="Something went wrong...")
     return {"message": "Project deleted successfully"}
+
+
+async def get_recent_activities(k: int):
+    """Get k most recent activities"""
+    try:
+        db = next(get_db())
+        activities = db.query(ActivityLog).order_by(ActivityLog.timestamp.desc()).limit(k).all()
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500, detail="Something went wrong...")
+    
+    return [
+        {
+            "uuid": activity.uuid,
+            "message": activity.message,
+            "timestamp": activity.timestamp,
+            "project_uuid": activity.project_uuid
+        } for activity in activities
+    ]
+
+
+async def get_project_statistics():
+    """Get statistics about projects in the database"""
+    try:
+        db = next(get_db())
+        project_count = db.query(ProjectInfo).count()
+    except SQLAlchemyError:
+        raise HTTPException(status_code=500, detail="Something went wrong...")
+    return {
+        "registered_projects": project_count
+    }
