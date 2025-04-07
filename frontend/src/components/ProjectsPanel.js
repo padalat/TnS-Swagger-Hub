@@ -161,7 +161,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
           {/* Team Section */}
           <div className="mb-4">
             <div
-              className="p-3 mb-2 bg-gray-200 rounded-lg cursor-pointer font-bold flex justify-between items-center select-none"
+              className="p-3 mb-2 bg-gray-200 rounded-lg cursor-pointer font-bold flex justify-between items-center select-none pl-4"
               onClick={() => setShowProjects(!showProjects)}
             >
               <span>TNS Team</span>
@@ -169,7 +169,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
             </div>
 
           {showProjects && (
-            <ul>
+            <ul className="pl-4">
               {error ? (
                 <ErrorMessage error={error} />
               ) : (
