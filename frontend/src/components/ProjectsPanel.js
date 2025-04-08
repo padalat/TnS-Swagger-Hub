@@ -4,6 +4,8 @@ import Loader from "./Loader";
 import ErrorMessage from "./ErrorMessage";
 import { BASE_API } from "../utils/baseApi";
 import { FiMoreVertical } from "react-icons/fi";
+import { MdDeleteOutline } from "react-icons/md";
+import { CiEdit } from "react-icons/ci";
 
 const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProject, setEditProject, refreshKey }) => {
   const [search, setSearch] = useState("");
@@ -209,7 +211,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                               handleEdit(project, e);
                             }}
                           >
-                          <span className="text-yellow-500">✏️</span> Edit
+                          <span className="text-yellow-500"><CiEdit size={20}/></span> Edit
                           </button>
                           <button
                             className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 transition-colors duration-200 flex items-center gap-2 m-0.5 rounded-md"
@@ -220,7 +222,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                               setDeletePrompt(project);
                             }}
                           >
-                            <span className="text-red-500">🗑️</span> Delete
+                            <span className="text-red-500"><MdDeleteOutline size={20}/></span> Delete
                           </button>
                         </div>
                       )}
