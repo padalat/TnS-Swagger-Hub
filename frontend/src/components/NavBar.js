@@ -32,21 +32,42 @@ const NavBar = () => {
   };
   
   return (
-    <div className="flex  bg-gray-50 w-full">
+    // <div className="flex  bg-gray-50 w-full">
    
-    <aside className="w-[20%] bg-white shadow-lg">
-      <div className="p-4 border-b flex items-center cursor-pointer" onClick={()=>{navigate("/")}}>
-        <div className="flex-shrink-0 mr-3">
-          <div className="h-8 w-8 rounded-md bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center">
-            <span className="text-white font-bold text-lg">T</span>
-          </div>
-        </div>
-        <div>
-          <h1 className="text-xl font-bold text-gray-800">TnS Swagger Hub</h1>
-          <p className="text-xs text-gray-500">Swagger Documentation</p>
-        </div>
+    // <aside className="w-[20%] bg-white shadow-lg">
+    //   <div className="p-4 border-b flex items-center cursor-pointer" onClick={()=>{navigate("/")}}>
+    //     <div className="flex-shrink-0 mr-3">
+    //       <div className="h-8 w-8 rounded-md bg-gradient-to-r from-blue-500 to-blue-700 flex items-center justify-center">
+    //         <span className="text-white font-bold text-lg">T</span>
+    //       </div>
+    //     </div>
+    //     <div>
+    //       <h1 className="text-xl font-bold text-gray-800">FlipDocs</h1>
+    //       <p className="text-xs text-gray-500">API Documentation</p>
+    //     </div>
+    //   </div>
+
+    <div className="flex bg-gray-50 w-full">
+  <aside className="w-[20%] bg-white shadow-lg">
+    <div
+      className="p-4 border-b flex items-center cursor-pointer"
+      onClick={() => {
+        navigate("/");
+      }}
+    >
+      <div className="flex-shrink-0 mr-3">
+        {/* Replace 'T' with a logo */}
+        <img
+          src="/images/flipkart-icon.png" // Replace with the actual path to your logo
+          alt="Logo"
+          className="h-8 w-8 rounded-md"
+        />
       </div>
-      
+      <div>
+        <h1 className="text-xl font-bold text-gray-800">FlipDocs</h1>
+        <p className="text-xs text-gray-500">API Documentation</p>
+      </div>
+    </div>
 
     </aside>
     
