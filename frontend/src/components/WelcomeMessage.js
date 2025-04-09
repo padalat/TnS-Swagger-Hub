@@ -53,8 +53,8 @@ const WelcomeMessage = () => {
   return (
     <div className="flex flex-col gap-8 p-6 min-h-screen">
       {/* Header */}
-      <div className="bg-white rounded-lg p-6 text-center">
-        <h1 className="text-4xl font-bold text-gray-800">Welcome to TnS SwaggerHub</h1>
+      <div className="bg-white  rounded-lg p-6 text-center">
+        <h1 className="text-4xl font-bold text-gray-800">Welcome to FlipDocs</h1>
         <p className="text-lg text-gray-600 mt-2">Crafting Innovative API Journeys</p>
       </div>
 

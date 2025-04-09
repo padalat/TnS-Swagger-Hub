@@ -42,8 +42,6 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
       setIsSubmitting(false);
       return;
     }
-
-    // Updated validation to ensure at least one URL is provided
     if (!preprodUrl && !prodUrl && !pgUrl) {
       setMessage("At least one URL is required.");
       setIsSubmitting(false);
@@ -52,9 +50,6 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
 
     try {
       let response, data;
-      
-      // Properly format the data with empty strings instead of null
-      // This ensures the backend receives consistent data types
       const projectData = {
         projectname: projectName,
         team_name: "TnS",

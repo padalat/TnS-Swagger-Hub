@@ -103,15 +103,12 @@ const Instruction = ({ onClose }) => {
           </div>
         </div>
       </div>
-
-      {/* Enlarged Image Overlay */}
       {selectedImage && (
         <div 
           className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-70 z-[70]"
           onClick={() => setSelectedImage(null)}
         >
           <div className="relative" onClick={e => e.stopPropagation()}>
-            {/* Close Button for Enlarged Image */}
             <button
               onClick={() => setSelectedImage(null)}
               className="absolute top-0 right-2 text-white text-3xl hover:text-red-500 transition"
@@ -119,7 +116,6 @@ const Instruction = ({ onClose }) => {
               ×
             </button>
 
-            {/* Full-Size Image */}
             <img
               src={selectedImage}
               alt="Enlarged"
