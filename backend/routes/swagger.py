@@ -1,24 +1,23 @@
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, HTTPException, Request
 from controllers.swaggerController import (
-    get_all_swagger_docs,
-    get_project_swagger_by_uuid_and_env,
+    get_all_swagger,
+    get_swagger_by_uuid,
     fetch_event_configs,
     post_event_configs,
     put_event_configs,
     patch_event_configs,
     delete_event_configs
 )
-from dependencies.jwt_bearer import JWTBearer
 
 router = APIRouter()
 
-@router.get("/swagger/get/all", dependencies=[Depends(JWTBearer())])
-async def route_get_all_swagger_docs():
-    return await get_all_swagger_docs()
+@router.get("/swagger/get/all")
+async def route_get_all_swagger():
+    return await get_all_swagger()
 
-@router.get("/swagger/get/{uuid}/{env}", dependencies=[Depends(JWTBearer())])
-async def route_get_project_swagger_by_uuid_and_env(uuid: str, env: str):
-    return await get_project_swagger_by_uuid_and_env(uuid, env)
+@router.get("/swagger/get/{uuid}/{env}")
+async def route_get_swagger_by_uuid(uuid: str, env: str):
+    return await get_swagger_by_uuid(uuid, env)
 
 @router.get("/swagger-fetch")
 async def route_fetch_event_configs(request: Request):
