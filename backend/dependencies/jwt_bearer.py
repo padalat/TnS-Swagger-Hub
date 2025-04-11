@@ -2,7 +2,7 @@ import jwt
 from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-JWT_SECRET = "a-string-secret-at-least-256-bits-long"  # Replace with your actual secret
+JWT_SECRET = "a-string-secret-at-least-256-bits-long" 
 JWT_ALGORITHM = "HS256"
 
 class JWTBearer(HTTPBearer):

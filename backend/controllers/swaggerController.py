@@ -1,9 +1,10 @@
+from fastapi import HTTPException
 import httpx
 import asyncio
 import re
 import json
 from json.decoder import JSONDecodeError
-from database.database import get_db, FDProjectRegistry
+from database.database import FDTeam, get_db, FDProjectRegistry
 from fastapi.responses import JSONResponse
 
 async def get_all_swagger_docs():
@@ -28,11 +29,19 @@ async def fetch_swagger_from_url(client, projectname, url, id):
         pass
     return {"service": projectname, "swagger": None}
 
-async def get_project_swagger_by_uuid_and_env(uuid: str, env: str):
+async def get_project_swagger_by_uuid_and_env(uuid: str, env: str,user):
     db = next(get_db())
+
     project = db.query(FDProjectRegistry).filter(FDProjectRegistry.project_uuid == uuid).first()
     if not project:
         raise Exception("Project not found")
+    
+    if not user.get("flipdocs-admin"):
+        team = db.query(FDTeam).filter(FDTeam.team_id == project.team_id).first()
+        if not team or team.team_name != user.get("team_name"):
+                raise HTTPException(status_code=400, detail="Invalid team name")
+    
+    
     
     # Map environment keys to the new database column names
     env_mapping = {

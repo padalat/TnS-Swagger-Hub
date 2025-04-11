@@ -10,7 +10,6 @@ from controllers.configController import (
 )
 from pydantic import BaseModel
 from dependencies.permissions import require_read_permission, require_write_permission, require_admin_permission
-from database.database import get_db, FDTeam, FDProjectRegistry
 
 # Updated model: removed team_name field for non-admin endpoints
 class ProjectCreate(BaseModel):
@@ -30,23 +29,17 @@ async def route_create_team(team: TeamCreate):
     return await create_new_team(team)
 
 @router.post("/projects/add", dependencies=[Depends(require_write_permission)])
-async def route_create_project(project: ProjectCreate, user: dict = Depends(require_write_permission)):
-    if not user.get("flipdocs-admin"):
-        project.team_name = user.get("team_name")
-    return await create_new_project(project)
+async def route_create_project(body: ProjectCreate, user: dict = Depends(require_write_permission)):
+    return await create_new_project(body,user)
 
 @router.get("/projects/team/get/all", dependencies=[Depends(require_read_permission)])
 async def route_get_team_projects(team_name: str = None, user: dict = Depends(require_read_permission)):
-    if not user.get("flipdocs-admin"):
-        team_name = user.get("team_name")
-    return await retrieve_team_projects(team_name)
+    return await retrieve_team_projects(team_name,user)
 
 
 @router.put("/projects/update/{project_uuid}", dependencies=[Depends(require_write_permission)])
-async def route_update_project(project_uuid: str, project: ProjectCreate, user: dict = Depends(require_write_permission)):
-    if not user.get("flipdocs-admin"):
-        project.team_name = user.get("team_name")
-    return await update_existing_project(project_uuid, project)
+async def route_update_project(project_uuid: str, body: ProjectCreate, user: dict = Depends(require_write_permission)):
+    return await update_existing_project(project_uuid, body,user)
 
 @router.delete("/projects/delete/{uuid}", dependencies=[Depends(require_write_permission)])
 async def route_delete_project(uuid: str, user: dict = Depends(require_write_permission)):

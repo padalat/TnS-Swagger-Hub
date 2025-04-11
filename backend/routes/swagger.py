@@ -9,16 +9,17 @@ from controllers.swaggerController import (
     delete_event_configs
 )
 from dependencies.jwt_bearer import JWTBearer
+from dependencies.permissions import require_read_permission,require_admin_permission
 
 router = APIRouter()
 
-@router.get("/swagger/get/all", dependencies=[Depends(JWTBearer())])
+@router.get("/swagger/get/all",  dependencies=[Depends(require_admin_permission)])
 async def route_get_all_swagger_docs():
     return await get_all_swagger_docs()
 
-@router.get("/swagger/get/{uuid}/{env}", dependencies=[Depends(JWTBearer())])
-async def route_get_project_swagger_by_uuid_and_env(uuid: str, env: str):
-    return await get_project_swagger_by_uuid_and_env(uuid, env)
+@router.get("/swagger/get/{uuid}/{env}", dependencies=[Depends(require_read_permission)])
+async def route_get_project_swagger_by_uuid_and_env(uuid: str, env: str,user: dict = Depends(require_read_permission)):
+    return await get_project_swagger_by_uuid_and_env(uuid, env,user)
 
 @router.get("/swagger-fetch")
 async def route_fetch_event_configs(request: Request):

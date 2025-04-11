@@ -5,8 +5,6 @@ import requests.exceptions
 from fastapi import HTTPException
 from datetime import datetime
 import uuid
-import asyncio
-import functools
 
 
 def ensure_scheme(url):
@@ -15,28 +13,13 @@ def ensure_scheme(url):
     return url
 
 
-# Added exception handler decorator
-def handle_exceptions(func):
-    @functools.wraps(func)
-    async def wrapper(*args, **kwargs):
-        try:
-            return await func(*args, **kwargs)
-        except HTTPException:
-            raise
-        except Exception as e:
-            print(e)
-            raise HTTPException(status_code=500, detail="Unexpected error")
-    return wrapper
-
-
-@handle_exceptions
-async def create_new_project(project):
-    if not project.prod_url and not project.pre_prod_url and not project.pg_url:
+async def create_new_project(body,user):
+    if not body.prod_url and not body.pre_prod_url and not body.pg_url:
         raise HTTPException(status_code=400, detail="At least one URL must be provided")
 
-    if project.prod_url:
+    if body.prod_url:
         try:
-            safe_url = ensure_scheme(project.prod_url)
+            safe_url = ensure_scheme(body.prod_url)
             response = requests.get(safe_url, verify=False)
             response.raise_for_status()  
             response.json()
@@ -45,9 +28,9 @@ async def create_new_project(project):
         except ValueError as exc:
             raise HTTPException(status_code=400, detail="Invalid JSON response from prod url")
 
-    if project.pre_prod_url:
+    if body.pre_prod_url:
         try:
-            safe_url = ensure_scheme(project.pre_prod_url)
+            safe_url = ensure_scheme(body.pre_prod_url)
             r_pre = requests.get(safe_url, verify=False)
             r_pre.raise_for_status()
             r_pre.json()
@@ -56,9 +39,9 @@ async def create_new_project(project):
         except ValueError as exc:
             raise HTTPException(status_code=400, detail="Invalid JSON response from pre prod url")
 
-    if project.pg_url:
+    if body.pg_url:
         try:
-            safe_url = ensure_scheme(project.pg_url)
+            safe_url = ensure_scheme(body.pg_url)
             r_pg = requests.get(safe_url, verify=False)
             r_pg.raise_for_status()
             r_pg.json()
@@ -69,26 +52,30 @@ async def create_new_project(project):
 
     try:
         db = next(get_db())
-        print(project.team_name)
-        
-        team = db.query(FDTeam).filter(FDTeam.team_name == project.team_name).first()
+        team_name=None
+        if user.get("flipdocs-admin"):
+            team_name=body.team_name
+        else:
+            print(user.get("team_name"))
+            team_name=user.get("team_name")
+        team = db.query(FDTeam).filter(FDTeam.team_name == team_name).first()
         if not team:
             raise HTTPException(status_code=400, detail="Invalid team name")
     
         new_project = FDProjectRegistry(
             project_uuid=str(uuid.uuid4()),
-            project_name=project.projectname,
+            project_name=body.projectname,
             team_id=team.team_id,
-            production_url=project.prod_url,
-            pre_production_url=project.pre_prod_url,
-            playground_url=project.pg_url
+            production_url=body.prod_url,
+            pre_production_url=body.pre_prod_url,
+            playground_url=body.pg_url
         )
         db.add(new_project)
         db.flush()
         
         activity = FDActivityLog(
             log_uuid=str(uuid.uuid4()),
-            log_message=f"Project '{project.projectname}' added",
+            log_message=f"Project '{body.projectname}' added",
             log_timestamp=datetime.now(IST),
             team_id=team.team_id
         )
@@ -103,17 +90,19 @@ async def create_new_project(project):
     return {
         "uuid": new_project.project_uuid,
         "projectname": new_project.project_name,
-        "team_name": project.team_name,
+        "team_name": team.team_name,
         "prod_url": new_project.production_url,
         "pre_prod_url": new_project.pre_production_url,
         "pg_url": new_project.playground_url
     }
 
 
-@handle_exceptions
-async def retrieve_team_projects(team_name):
+async def retrieve_team_projects(team_name,user):
     try:
         db = next(get_db())
+        if not user.get("flipdocs-admin") or not team_name:
+            team_name = user.get("team_name")
+
         team = db.query(FDTeam).filter(FDTeam.team_name == team_name).first()
         
         if not team:
@@ -136,18 +125,17 @@ async def retrieve_team_projects(team_name):
     ]
 
 
-@handle_exceptions
-async def update_existing_project(project_uuid: str, project):
-    prod_url = project.prod_url if project.prod_url and project.prod_url.strip() else None
-    pre_prod_url = project.pre_prod_url if project.pre_prod_url and project.pre_prod_url.strip() else None
-    pg_url = project.pg_url if project.pg_url and project.pg_url.strip() else None
+async def update_existing_project(project_uuid: str, body,user):
+    prod_url = body.prod_url if body.prod_url and body.prod_url.strip() else None
+    pre_prod_url = body.pre_prod_url if body.pre_prod_url and body.pre_prod_url.strip() else None
+    pg_url = body.pg_url if body.pg_url and body.pg_url.strip() else None
     
     if not prod_url and not pre_prod_url and not pg_url:
         raise HTTPException(status_code=400, detail="At least one URL must be provided")
     
-    project.prod_url = prod_url
-    project.pre_prod_url = pre_prod_url
-    project.pg_url = pg_url
+    body.prod_url = prod_url
+    body.pre_prod_url = pre_prod_url
+    body.pg_url = pg_url
     
     if prod_url:
         try:
@@ -184,7 +172,12 @@ async def update_existing_project(project_uuid: str, project):
 
     try:
         db = next(get_db())
-        team = db.query(FDTeam).filter(FDTeam.team_name == project.team_name).first()
+
+        team_name=body.team_name
+        if not user.get("flipdocs-admin"):
+            team_name = user.get("team_name")
+
+        team = db.query(FDTeam).filter(FDTeam.team_name == team_name).first()
         if not team:
             raise HTTPException(status_code=400, detail="Invalid team name")
         existing_project = db.query(FDProjectRegistry).filter(FDProjectRegistry.project_uuid == project_uuid,FDProjectRegistry.team_id == team.team_id).first()
@@ -194,7 +187,7 @@ async def update_existing_project(project_uuid: str, project):
             
         
             
-        existing_project.project_name = project.projectname
+        existing_project.project_name = body.projectname
         existing_project.team_id = team.team_id
         existing_project.production_url = prod_url
         existing_project.pre_production_url = pre_prod_url
@@ -219,15 +212,14 @@ async def update_existing_project(project_uuid: str, project):
     return {
         "uuid": existing_project.project_uuid,
         "projectname": existing_project.project_name,
-        "team_name": project.team_name,
+        "team_name": team.team_name,
         "prod_url": existing_project.production_url,
         "pre_prod_url": existing_project.pre_production_url,
         "pg_url": existing_project.playground_url
     }
 
 
-@handle_exceptions
-async def delete_existing_project(project_uuid: str, user):
+async def delete_existing_project(project_uuid: str,user):
     try:
         db = next(get_db())
         project = db.query(FDProjectRegistry).filter(FDProjectRegistry.project_uuid == project_uuid).first()
@@ -265,7 +257,6 @@ async def delete_existing_project(project_uuid: str, user):
     return {"message": "Project deleted successfully"}
 
 
-@handle_exceptions
 async def fetch_recent_activity_logs(k: int, user):
     db = next(get_db())
     if user.get("flipdocs-admin"):
@@ -291,7 +282,6 @@ async def fetch_recent_activity_logs(k: int, user):
     ]
 
 
-@handle_exceptions
 async def fetch_project_statistics(user):
     """Get statistics about projects in the database"""
     if user.get("flipdocs-admin"):
@@ -321,7 +311,6 @@ async def fetch_project_statistics(user):
         }
 
 
-@handle_exceptions
 async def create_new_team(team):
     """
     Create a new team in the database
