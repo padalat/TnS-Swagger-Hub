@@ -351,3 +351,32 @@ async def create_new_team(team):
         db.rollback()
         print(e)
         raise HTTPException(status_code=500, detail="Something went wrong when creating the team")
+
+
+async def get_all_teams(user):
+    """
+    Get team names. If user is admin, return all teams.
+    If user is not admin, return only their team.
+    """
+    try:
+        db = next(get_db())
+        
+        # If user is admin, return all teams
+        if user.get("flipdocs-admin"):
+            teams = db.query(FDTeam).all()
+            return {"teams": [{"team_id":team.team_id,"team_name":team.team_name} for team in teams]}
+        
+        # For regular users, return only their team
+        team_name = user.get("team_name")
+        if not team_name:
+            raise HTTPException(status_code=400, detail="Team name not found in user token")
+        
+        team = db.query(FDTeam).filter(FDTeam.team_name == team_name).first()
+        if not team:
+            raise HTTPException(status_code=404, detail=f"Team '{team_name}' not found")
+        
+        return {"teams": [{"team_id":team.team_id,"team_name":team.team_name}]}
+        
+    except SQLAlchemyError as e:
+        print(e)
+        raise HTTPException(status_code=500, detail="Something went wrong retrieving team data")

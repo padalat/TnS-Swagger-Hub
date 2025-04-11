@@ -6,7 +6,8 @@ from controllers.configController import (
     delete_existing_project,
     fetch_recent_activity_logs,
     fetch_project_statistics,
-    create_new_team
+    create_new_team,
+    get_all_teams
 )
 from pydantic import BaseModel
 from dependencies.permissions import require_read_permission, require_write_permission, require_admin_permission
@@ -54,3 +55,7 @@ async def route_get_recent_activities(k: int = Query(10, description="Number of 
 @router.get("/statistics", dependencies=[Depends(require_read_permission)])
 async def route_get_statistics(user: dict = Depends(require_read_permission)):
     return await fetch_project_statistics(user)
+
+@router.get("/teams/get/all", dependencies=[Depends(require_read_permission)])
+async def route_get_teams(user: dict = Depends(require_read_permission)):
+    return await get_all_teams(user)
