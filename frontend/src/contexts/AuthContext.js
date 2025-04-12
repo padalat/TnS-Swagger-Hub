@@ -8,6 +8,9 @@ export const AuthProvider = ({ children }) => {
   
   const [token, setToken] = useState(null);
   const [decoded, setDecoded] = useState(null);
+  const [canRead,setCanRead]=useState(false);
+  const [canWrite,setCanWrite]=useState(false);
+  const [isAdmin,setIsAdmin]=useState(false);
 
   useEffect(() => {
     const storedToken = Cookies.get("token");
@@ -16,6 +19,9 @@ export const AuthProvider = ({ children }) => {
       try {
         const decodedToken = jwtDecode(storedToken);
         setDecoded(decodedToken);
+        setCanRead(decodedToken["flipdocs-user-read"]);
+        setCanWrite(decodedToken["flipdocs-user-write"]);{console.log("can ",canRead, canWrite, isAdmin)}
+        setIsAdmin(decodedToken["flipdocs-admin"]);
       } catch (err) {
         console.error("Failed to decode token", err);
       }
@@ -24,7 +30,9 @@ export const AuthProvider = ({ children }) => {
   
 
   return (
-    <AuthContext.Provider value={{ token, decoded }}>
+    
+    <AuthContext.Provider value={{ token, decoded ,canRead, canWrite, isAdmin }}>
+      
       {children}
     </AuthContext.Provider>
   );

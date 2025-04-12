@@ -4,6 +4,7 @@ import Home from './pages/Home/Home'
 import Layout from './components/Layout';
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import ErrorMessage from './components/ErrorMessage';
 
 const App = () => {
   return (
@@ -16,6 +17,7 @@ const App = () => {
                 <Home />
               </ProtectedRoute>
             } />
+            <Route path='error' element={<ErrorMessage error={"You don't have any access"}/>} />
           </Routes>
         </Layout>
       </AuthProvider>
