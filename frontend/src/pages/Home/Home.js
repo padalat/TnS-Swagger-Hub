@@ -112,13 +112,19 @@ const Home = () => {
   }
 
   return (
+<<<<<<< Updated upstream
     <div className="flex min-h-[95vh]">
+=======
+    <div className="flex min-h-screen">
+      
+>>>>>>> Stashed changes
       <ProjectsPanel
         setAddProject={setAddProject}
         projects={projects}
         setProjects={setProjects}
         handleEdit={handleEdit}
         setEditProject={setEditProject}
+<<<<<<< Updated upstream
         refreshKey={refreshKey}
         setSelectedProject={setSelectedProject}
         teams={allTeams}
@@ -130,6 +136,94 @@ const Home = () => {
       </div>
 
       {(canWrite || isAdmin) && addProject && (
+=======
+        setSelectedProject={setSelectedProject} 
+      />
+
+      
+      <div
+        className={`flex-1 relative ${
+          selectedProject ? "bg-white" : "bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600"
+        } p-6`}
+      >
+        {selectedProject ? (
+          
+          <div className="w-full p-4 flex justify-center items-center">
+            <Swagger selectedProject={selectedProject} />
+          </div>
+        ) : (
+          <>
+            
+            <motion.div
+              className="text-center mb-8"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <h1 className="text-5xl font-extrabold text-white drop-shadow-lg">
+                FlipDocs
+              </h1>
+              <p className="text-lg text-gray-200 mt-2">
+                 API Documentation
+              </p>
+            </motion.div>
+
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mx-auto">
+              
+              <motion.div
+                className="bg-gradient-to-r from-white to-blue-100 dark:from-gray-800 dark:to-gray-700 shadow-lg rounded-xl p-6 flex flex-col items-center justify-center hover:shadow-2xl transition-shadow"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6 }}
+              >
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                  Registered Projects
+                </h3>
+                <p className="text-6xl font-extrabold text-blue-600 dark:text-blue-400">
+                  {registeredProjects}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  Total number of projects registered in the team.
+                </p>
+              </motion.div>
+
+             
+              <motion.div
+                className="bg-gradient-to-r from-white to-blue-100 dark:from-gray-800 dark:to-gray-700 shadow-lg rounded-xl p-6 hover:shadow-2xl transition-shadow"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                  Recent API Activity
+                </h3>
+                {loading ? (
+                  <div className="flex justify-center items-center h-24">
+                    <p className="text-gray-500">Loading...</p>
+                  </div>
+                ) : error ? (
+                  <p className="text-red-500 text-center">{error}</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {apiStatus ? (
+                      <li className="text-gray-700 dark:text-gray-300 text-center">
+                        {apiStatus}
+                      </li>
+                    ) : (
+                      <p className="text-gray-500 text-center">No recent activity</p>
+                    )}
+                  </ul>
+                )}
+              </motion.div>
+            </div>
+          </>
+        )}
+      </div>
+
+     
+      {addProject && (
+>>>>>>> Stashed changes
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50">
           <AddProjectForm
             onAddProject={handleAddProject}
