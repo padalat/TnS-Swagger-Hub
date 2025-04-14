@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 const Instruction = ({ onClose }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   
+  // Close on escape key
   useEffect(() => {
     const handleEscape = (e) => {
       if (e.key === 'Escape') {
@@ -18,7 +19,7 @@ const Instruction = ({ onClose }) => {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [selectedImage, onClose]);
   
-
+  // Prevent body scrolling while modal is open
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
@@ -28,16 +29,22 @@ const Instruction = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[60]" onClick={onClose}>
+      {/* Instruction Box - Stop propagation to prevent closing when clicking inside */}
       <div className="bg-white w-[70%] p-6 rounded-lg shadow-lg relative h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-2 right-2 text-black hover:text-gray-300 px-2 transition duration-200 text-2xl"
         >
           ×
         </button>
+
+        {/* Title */}
         <h2 className="text-2xl font-bold mb-6 text-center">Project URL Instructions</h2>
+
+        {/* Scrollable Instructions */}
         <div className="space-y-6">
-      
+          {/* Instruction 1 */}
           <div className="flex flex-col items-center text-center">
             <p className="text-gray-700 pb-5 text-lg mt-2">
               <b>Go to project swagger</b>{" "}
@@ -53,7 +60,7 @@ const Instruction = ({ onClose }) => {
             />
           </div>
 
-         
+          {/* Instruction 2 */}
           <div className="flex flex-col items-center text-center">
             <p className="text-gray-700 text-lg mt-2">
               <b>Check for:</b> API Docs at the top of Swagger page (<span className="text-blue-500">/v3/api/docs</span>).
@@ -63,7 +70,7 @@ const Instruction = ({ onClose }) => {
             </p>
           </div>
 
-         
+          {/* Instruction 3 */}
           <div className="flex flex-col items-center text-center">
           <img
               src="/images/inst2.png"
@@ -82,7 +89,7 @@ const Instruction = ({ onClose }) => {
             </p>
           </div>
 
-         
+          {/* Instruction 4 */}
           <div className="flex flex-col items-center text-center">
             <img
               src="/images/inst4.png"
