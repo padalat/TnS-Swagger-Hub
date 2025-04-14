@@ -35,7 +35,6 @@ const Home = () => {
         if (!res.ok) throw new Error(`${res.status}: ${res.statusText}`);
   
         const data = await res.json();
-        console.log("data", data)
         setAllTeams(data.teams || []);
       } catch (error) {
         console.error("Failed to fetch teams:", error.message);
