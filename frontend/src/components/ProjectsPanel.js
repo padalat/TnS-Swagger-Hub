@@ -80,7 +80,10 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   };
 
   const handleDelete = async () => {
-    if (!deletePrompt) return;
+    if (!deletePrompt) {
+      alert("No project selected for deletion.");
+      return;
+    }
 
     if (confirmText !== deletePrompt.projectname) {
       alert("Project name does not match!");
@@ -89,12 +92,17 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 
     try {
       const res = await fetch(`${BASE_API}/projects/delete/${deletePrompt.uuid}`, {
+        method: "DELETE",
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!res.ok) throw new Error("Failed to delete project");
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || "Failed to delete project.");
+      }
 
       setProjects((prev) => prev.filter((p) => p.uuid !== deletePrompt.uuid));
       setDeletePrompt(null);
@@ -102,6 +110,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
       navigate("/");
     } catch (err) {
       console.error("Error deleting project:", err);
+      alert(`Error deleting project: ${err.message}`);
     }
   };
 

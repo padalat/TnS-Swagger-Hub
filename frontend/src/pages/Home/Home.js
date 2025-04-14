@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Swagger from "../../components/Swagger"; // Default export
-import ProjectsPanel from "../../components/ProjectsPanel"; // Default export
-import AddProjectForm from "../../components/AddProjects"; // Default export
-import ErrorMessage from "../../components/ErrorMessage"; // Default export
+import Swagger from "../../components/Swagger"; 
+import ProjectsPanel from "../../components/ProjectsPanel"; 
+import AddProjectForm from "../../components/AddProjects"; 
+import ErrorMessage from "../../components/ErrorMessage"; 
 import { BASE_API } from "../../utils/baseApi";
 import { AuthContext } from "../../contexts/AuthContext";
 

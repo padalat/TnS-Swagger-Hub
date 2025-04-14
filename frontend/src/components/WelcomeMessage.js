@@ -4,11 +4,10 @@ import Loader from "./Loader";
 
 const WelcomeMessage = () => {
   const [activities, setActivities] = useState([]);
-  const [stats, setStats] = useState({ totalProjects: 60, apiCalls: 1500, registeredProjects: 0 });
+  const [registeredProjects, setRegisteredProjects] = useState(0); // Retain only registered projects
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch recent activities and statistics when component mounts
   useEffect(() => {
     setLoading(true);
     Promise.all([
@@ -23,11 +22,7 @@ const WelcomeMessage = () => {
       })
       .then(([activitiesData, statsData]) => {
         setActivities(activitiesData);
-        setStats({
-          totalProjects: 60,
-          apiCalls: 1500,
-          registeredProjects: statsData.registered_projects
-        });
+        setRegisteredProjects(statsData.registered_projects); // Set registered projects
         setError(null);
       })
       .catch((err) => {
@@ -37,47 +32,36 @@ const WelcomeMessage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Format timestamp to readable format (convert from ISO to local time)
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
-    return date.toLocaleString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+    return date.toLocaleString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     });
   };
-  
+
   return (
     <div className="flex flex-col gap-8 p-6 min-h-screen">
       {/* Header */}
-      <div className="bg-white  rounded-lg p-6 text-center">
-        <h1 className="text-4xl font-bold text-gray-800">Welcome to FlipDocs</h1>
-        <p className="text-lg text-gray-600 mt-2">Crafting Innovative API Journeys</p>
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-6 text-center shadow-lg">
+        <h1 className="text-4xl font-bold">Welcome to FlipDocs</h1>
+        <p className="text-lg mt-2">Crafting Innovative API Journeys</p>
       </div>
 
-      {/* Statistics Section */}
+      {/* Registered Projects Section */}
       <div className="bg-white shadow-md rounded-lg p-6">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">Statistics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="shadow-sm rounded-lg p-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-800">{stats.totalProjects}</h2>
-            <p className="text-sm text-gray-600 mt-2">Total Projects</p>
-          </div>
-          <div className="shadow-sm rounded-lg p-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-800">{stats.registeredProjects}</h2>
-            <p className="text-sm text-gray-600 mt-2">Registered Projects</p>
-          </div>
-          <div className="shadow-sm rounded-lg p-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-800">{stats.apiCalls}</h2>
-            <p className="text-sm text-gray-600 mt-2">API Calls</p>
-          </div>
+        <h3 className="text-2xl font-bold text-gray-800 mb-4">Registered Projects</h3>
+        <div className="text-center">
+          <h2 className="text-4xl font-bold text-blue-600">{registeredProjects}</h2>
+          <p className="text-sm text-gray-600 mt-2">Total Registered Projects</p>
         </div>
       </div>
 
-      {/* Recent Activity Section - Only show if there are activities */}
+      {/* Recent Activity Section */}
       {loading ? (
         <div className="bg-white shadow-md rounded-lg p-6">
           <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
