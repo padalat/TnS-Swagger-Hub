@@ -277,7 +277,8 @@ async def fetch_recent_activity_logs(k: int, user):
     return [
         {
             "uuid": activity.log_uuid,
-            "message": activity.log_message
+            "message": activity.log_message,
+            "time":activity.log_timestamp
         } for activity in activities
     ]
 

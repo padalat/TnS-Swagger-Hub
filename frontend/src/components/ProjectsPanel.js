@@ -95,7 +95,9 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 
     try {
       const res = await fetch(`${BASE_API}/projects/delete/${deletePrompt.uuid}`, {
-        method: "DELETE",
+
+
+        method: 'DELETE',
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -175,6 +177,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
       </div>
 
       {/* Team Section */}
+
       <div className="relative z-10">
         {teams?.length > 0 ? (
           teams.map((team) => (
@@ -186,6 +189,35 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                 <span>{team.team_name} Team</span>
                 <span className="ml-auto">{showProjects === team.team_name ? "▼" : "▶"}</span>
               </div>
+      {teams?.length > 0 ? (
+        teams.map((team) => (
+          <div key={team.team_id} className="mb-4">
+            <div
+              className="p-3 mb-2 bg-gray-200 rounded-lg cursor-pointer font-bold flex justify-between items-center select-none pl-4"
+              onClick={() => setShowProjects((prev) => (prev === team.team_name ? null : team.team_name))}
+            >
+              <span>{team.team_name}</span>
+              <span className="ml-auto">{showProjects === team.team_name ? "▼" : "▶"}</span>
+            </div>
+
+            {showProjects === team.team_name && (
+              <ul className="pl-4">
+                {error ? (
+                  <ErrorMessage error={error} />
+                ) : (
+                  projects.map((project) => (
+                    <li
+                      key={project.uuid}
+                      className={`p-3 mb-2 relative flex justify-between items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
+                        project?.uuid === currentId ? "z-[20] bg-gray-200" : "z-0"
+                      }`}
+                      onClick={() => {
+                        navigate(`?id=${project.uuid}`);
+                        setSelectedProject(project);
+                      }}
+                    >
+                      <span className="font-medium">{project.projectname}</span>
+
 
               {showProjects === team.team_name && (
                 <ul className="pl-4">

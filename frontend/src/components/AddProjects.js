@@ -220,9 +220,6 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
           }
 
         </h2>
-        {
-          console.log("admin and read and write",canRead,canWrite,isAdmin)
-        }
 
         {!isEdit && isAdmin && (
           <div className="mb-4 flex gap-4">
@@ -342,7 +339,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
                 type="text"
                 id="teamSearch"
                 placeholder="Search team..."
-                value={teamName} // <-- should be teamName
+                value={selectedTeam} // should be teamName
                 onChange={(e) => {
                   setTeamName(e.target.value);
                   setShowDropdown(true);
@@ -363,7 +360,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
                         onClick={() => {
                           setSelectedTeam(team.team_name);
                           setTeamName(team.team_name);
-                          setIsTeamSelected(true); // ✅ mark selection
+                          setIsTeamSelected(true); 
                           setShowDropdown(false);
                         }}
                         className="px-4 py-2 hover:bg-blue-100 cursor-pointer"

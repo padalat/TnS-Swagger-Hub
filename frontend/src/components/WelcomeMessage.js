@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { BASE_API } from "../utils/baseApi";
 import Loader from "./Loader";
+import { AuthContext } from "../contexts/AuthContext";
+import { useContext } from "react";
 
 const WelcomeMessage = () => {
   const [activities, setActivities] = useState([]);
@@ -8,11 +10,30 @@ const WelcomeMessage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+
   useEffect(() => {
     setLoading(true);
     Promise.all([
       fetch(`${BASE_API}/activities/recent?k=5`), // Corrected to fetch 5 recent activities
       fetch(`${BASE_API}/statistics`),
+
+  const { token } = useContext(AuthContext);
+
+  // Fetch recent activities and statistics when component mounts
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([
+      fetch(`${BASE_API}/activities/recent?k=3`,{
+        "headers": {
+          "Authorization": `Bearer ${token}`
+        }     
+      }),
+      fetch(`${BASE_API}/statistics`,{
+        "headers": {
+          "Authorization": `Bearer ${token}`
+        }     
+      })
+
     ])
       .then(([resActivities, resStats]) => {
         if (!resActivities.ok || !resStats.ok) {
@@ -82,7 +103,7 @@ const WelcomeMessage = () => {
               <li key={activity.uuid} className="py-3">
                 <div className="flex flex-col md:flex-row md:justify-between">
                   <span className="font-medium text-sm text-gray-800">{activity.message}</span>
-                  <span className="text-sm text-gray-500">{formatTimestamp(activity.timestamp)}</span>
+                  <span className="text-sm text-gray-500">{formatTimestamp(activity.time)}</span>
                 </div>
               </li>
             ))}
