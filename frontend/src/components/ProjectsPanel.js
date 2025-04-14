@@ -92,6 +92,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 
     try {
       const res = await fetch(`${BASE_API}/projects/delete/${deletePrompt.uuid}`, {
+        method: 'DELETE',
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -171,7 +172,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
               className="p-3 mb-2 bg-gray-200 rounded-lg cursor-pointer font-bold flex justify-between items-center select-none pl-4"
               onClick={() => setShowProjects((prev) => (prev === team.team_name ? null : team.team_name))}
             >
-              <span>{team.team_name} Team</span>
+              <span>{team.team_name}</span>
               <span className="ml-auto">{showProjects === team.team_name ? "▼" : "▶"}</span>
             </div>
 
