@@ -1,23 +1,25 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Depends
 from controllers.swaggerController import (
-    get_all_swagger,
-    get_swagger_by_uuid,
+    get_all_swagger_docs,
+    get_project_swagger_by_uuid_and_env,
     fetch_event_configs,
     post_event_configs,
     put_event_configs,
     patch_event_configs,
     delete_event_configs
 )
+from dependencies.jwt_bearer import JWTBearer
+from dependencies.permissions import require_read_permission,require_admin_permission
 
 router = APIRouter()
 
-@router.get("/swagger/get/all")
-async def route_get_all_swagger():
-    return await get_all_swagger()
+@router.get("/swagger/get/all",  dependencies=[Depends(require_admin_permission)])
+async def route_get_all_swagger_docs():
+    return await get_all_swagger_docs()
 
-@router.get("/swagger/get/{uuid}/{env}")
-async def route_get_swagger_by_uuid(uuid: str, env: str):
-    return await get_swagger_by_uuid(uuid, env)
+@router.get("/swagger/get/{uuid}/{env}", dependencies=[Depends(require_read_permission)])
+async def route_get_project_swagger_by_uuid_and_env(uuid: str, env: str,user: dict = Depends(require_read_permission)):
+    return await get_project_swagger_by_uuid_and_env(uuid, env,user)
 
 @router.get("/swagger-fetch")
 async def route_fetch_event_configs(request: Request):

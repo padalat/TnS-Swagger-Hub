@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import SwaggerUI from "swagger-ui-react";
 import "swagger-ui-react/swagger-ui.css";
 import requestInterceptor from "../utils/requestInterceptor";
@@ -6,6 +6,9 @@ import Loader from "./Loader";
 import WelcomeMessage from "./WelcomeMessage";
 import ErrorMessage from "./ErrorMessage";
 import { BASE_API } from "../utils/baseApi";
+import {AuthContext} from '../contexts/AuthContext'
+
+
 
 const ENV_KEYS = {
   prod: "prod_url",
@@ -20,6 +23,7 @@ const SwaggerHub = ({ selectedProject }) => {
   const [selectedEnv, setSelectedEnv] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [availableEnvs, setAvailableEnvs] = useState([]);
+  const {token,decoded}=useContext(AuthContext);
 
   // Calculate available environments whenever selectedProject changes
   useEffect(() => {
@@ -66,7 +70,11 @@ const SwaggerHub = ({ selectedProject }) => {
         return;
       }
       
-      fetch(`${BASE_API}/swagger/get/${selectedProject.uuid}/${encodeURIComponent(selectedEnv.key)}`)
+      fetch(`${BASE_API}/swagger/get/${selectedProject.uuid}/${encodeURIComponent(selectedEnv.key)}`, {
+        "headers": {
+          "Authorization" : `Bearer ${token}`,
+        }
+      })
         .then((res) => {
           if (!res.ok) {
             throw new Error(`HTTP error! Status: ${res.status}`);

@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BASE_API } from "../utils/baseApi";
 import Instruction from "./Instruction";
+import {AuthContext} from '../contexts/AuthContext'
+import { useContext } from "react";
 
-
-const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject, setProjects, onClose }) => {
+const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject, setProjects, onClose,allTeams,setAllTeams ,addTeam,setAddTeam,onAddTeam}) => {
   const [projectName, setProjectName] = useState("");
   const [preprodUrl, setPreprodUrl] = useState("");
   const [prodUrl, setProdUrl] = useState("");
@@ -12,10 +13,25 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
   const [message, setMessage] = useState("");
   const [isEdit, setIsEdit] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showNameTooltip, setShowNameTooltip] = useState(false);
   const [showInstructions, setShowInstructions] = useState(false);
+  const [showAdd, setShowAdd] = useState(true);
+  const [teamName, setTeamName] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isTeamSelected, setIsTeamSelected] = useState(false);
+
+
   const navigate = useNavigate();
 
+  const {token,isAdmin,canRead,canWrite,decoded}=useContext(AuthContext);
+  const [selectedTeam,setSelectedTeam] = useState();
+  useEffect(() => {
+    const defaultTeam = isAdmin ? "" : decoded?.["team_name"];
+    setSelectedTeam(defaultTeam);
+    setTeamName(defaultTeam); // pre-fill input, even if hidden
+    setIsTeamSelected(!isAdmin); // true only for non-admins
+  }, []);
+  
+ 
   useEffect(() => {
     if (addProject?.isEditing && addProject.projectData) {
       setIsEdit(true);
@@ -24,6 +40,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
       setPreprodUrl(data.pre_prod_url || "");
       setProdUrl(data.prod_url || "");
       setPgUrl(data.pg_url || "");
+      setSelectedTeam(data.team_name || "");
     } else {
       setIsEdit(false);
       setProjectName("");
@@ -32,6 +49,54 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
       setPgUrl("");
     }
   }, [addProject]);
+
+  const handleAddTeam = async (e) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    if (!projectName) {
+      setMessage("Team name is required.");
+      setIsSubmitting(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BASE_API}/teams/add`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({ team_name: projectName }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Failed to add team.");
+      }
+
+      const data = await response.json();
+      setMessage("Team added successfully!");
+      setProjectName("");
+      onAddTeam(data);
+
+      navigate("/");
+      setTimeout(() => {
+        setMessage("");
+        if (onClose) {
+          onClose();
+        } else {
+          navigate("/");
+        }
+      }, 0);
+      
+    } catch (error) {
+      console.error("Error adding team:", error);
+      setMessage(error.message || "Error processing team. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -47,18 +112,23 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
       setIsSubmitting(false);
       return;
     }
+    if (isAdmin && (!selectedTeam || !isTeamSelected)) {
+      setMessage("Please select a valid team from the list.");
+      setIsSubmitting(false);
+      return;
+    }
+    
 
     try {
       let response, data;
       const projectData = {
         projectname: projectName,
-        team_name: "TnS",
-        pre_prod_url: preprodUrl || "", // Use empty string instead of null
-        prod_url: prodUrl || "",        // Use empty string instead of null
-        pg_url: pgUrl || ""             // Use empty string instead of null
+        team_name: selectedTeam,
+        pre_prod_url: preprodUrl || "",
+        prod_url: prodUrl || "",
+        pg_url: pgUrl || ""
       };
 
-      // Make sure at least one URL is non-empty
       if (!projectData.pre_prod_url && !projectData.prod_url && !projectData.pg_url) {
         setMessage("At least one URL must be provided.");
         setIsSubmitting(false);
@@ -66,20 +136,15 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
       }
 
       if (isEdit && addProject.projectData.uuid) {
-        // For editing existing project
         const projectUuid = addProject.projectData.uuid;
-        
-        // Log the data being sent for debugging
-        console.log("Updating project with data:", projectData);
-        
         response = await fetch(`${BASE_API}/projects/update/${projectUuid}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization" : `Bearer ${token}`,
+            },
           body: JSON.stringify(projectData),
         });
-
-        // Log the response status for debugging
-        console.log("Update response status:", response.status);
 
         if (!response.ok) {
           let errorMessage = "Failed to update project.";
@@ -87,7 +152,6 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
             const errorData = await response.json();
             errorMessage = errorData.detail || errorMessage;
           } catch (e) {
-            // If JSON parsing fails, use the status text
             errorMessage = `Server error: ${response.status} ${response.statusText}`;
           }
           throw new Error(errorMessage);
@@ -99,7 +163,10 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
       } else {
         response = await fetch(`${BASE_API}/projects/add`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
           body: JSON.stringify(projectData),
         });
 
@@ -135,13 +202,9 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
     }
   };
 
-  const toggleNameTooltip = () => {
-    setShowNameTooltip(prev => !prev);
-  };
-
   const toggleInstructions = (e) => {
-    e.preventDefault(); // Prevent form submission
-    e.stopPropagation(); // Prevent event bubbling
+    e.preventDefault();
+    e.stopPropagation();
     setShowInstructions(prev => !prev);
   };
 
@@ -149,111 +212,234 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
     <div className="relative flex flex-col items-center p-6 w-full">
       <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
         <h2 className="text-xl font-bold mb-4">
-          {isEdit ? "Edit Project" : "Add New Project"}
+          {isEdit ? "Edit Project" :
+          isAdmin ? 
+           "Choose Action"
+           :
+           "Add Project"
+          }
+
         </h2>
+        {
+          console.log("admin and read and write",canRead,canWrite,isAdmin)
+        }
+
+        {!isEdit && isAdmin && (
+          <div className="mb-4 flex gap-4">
+            <button
+              className="px-4 py-2 bg-blue-500 text-white rounded"
+              onClick={() => {
+                setShowAdd(true);
+                setProjectName("");
+                setPreprodUrl("");
+                setProdUrl("");
+                setPgUrl("");
+                setShowInstructions(false);
+              }}
+            >
+              Add New Project
+            </button>
+             <button
+              className="px-4 py-2 bg-green-500 text-white rounded"
+              onClick={() => {
+                setShowAdd(false);
+                setProjectName("");
+                setPreprodUrl("");
+                setProdUrl("");
+                setPgUrl("");
+                setShowInstructions(false);
+              }}
+            >
+              Add New Team
+            </button>
+          </div>
+        )}
 
         {message && (
           <div className={`p-3 mb-4 rounded ${
-            message.includes("Error") || message.includes("Failed") 
-              ? "bg-red-100 text-red-700" 
+            message.includes("Error") || message.includes("Failed")
+              ? "bg-red-100 text-red-700"
               : "bg-green-100 text-green-700"
           }`}>
             {message}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <div className="flex items-center mb-1">
-              <label htmlFor="projectName" className="block text-sm font-medium text-gray-700">
-                Project Name *
+        {showAdd ? (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <div className="flex items-center mb-1">
+                <label htmlFor="projectName" className="block text-sm font-medium text-gray-700">
+                  Project Name *
+                </label>
+                <button
+                  type="button"
+                  onClick={toggleInstructions}
+                  className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  aria-label="Project information"
+                >
+                  i
+                </button>
+              </div>
+              <input
+                id="projectName"
+                type="text"
+                placeholder="Enter project name"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="prodUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                Production URL
               </label>
-              <button 
-                type="button"
-                onClick={toggleInstructions}
-                className="ml-2 inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                aria-label="Project information"
+              <input
+                id="prodUrl"
+                type="url"
+                placeholder="https://api.example.com/swagger.json"
+                value={prodUrl}
+                onChange={(e) => setProdUrl(e.target.value)}
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="preprodUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                Pre-production URL
+              </label>
+              <input
+                id="preprodUrl"
+                type="url"
+                placeholder="https://preprod.example.com/swagger.json"
+                value={preprodUrl}
+                onChange={(e) => setPreprodUrl(e.target.value)}
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="pgUrl" className="block text-sm font-medium text-gray-700 mb-1">
+                Playground URL
+              </label>
+              <input
+                id="pgUrl"
+                type="url"
+                placeholder="https://playground.example.com/swagger.json"
+                value={pgUrl}
+                onChange={(e) => setPgUrl(e.target.value)}
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+            
+            {(isAdmin) && (<div className="relative">
+              <label htmlFor="teamSearch" className="block text-sm font-medium text-gray-700 mb-1">
+                Select Team *
+              </label>
+              <input
+                type="text"
+                id="teamSearch"
+                placeholder="Search team..."
+                value={teamName} // <-- should be teamName
+                onChange={(e) => {
+                  setTeamName(e.target.value);
+                  setShowDropdown(true);
+                }}
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                autoComplete="on"
+              />
+
+              {showDropdown && teamName && (
+                <ul className="absolute z-10 w-full bg-white border border-gray-300 mt-1 rounded-md max-h-40 overflow-y-auto shadow-lg">
+                  {allTeams
+                    .filter((team) =>
+                      team.team_name.toLowerCase().includes(teamName.toLowerCase())
+                    )
+                    .map((team) => (
+                      <li
+                        key={team.team_id}
+                        onClick={() => {
+                          setSelectedTeam(team.team_name);
+                          setTeamName(team.team_name);
+                          setIsTeamSelected(true); // ✅ mark selection
+                          setShowDropdown(false);
+                        }}
+                        className="px-4 py-2 hover:bg-blue-100 cursor-pointer"
+                      >
+                        {team.team_name}
+                      </li>
+
+                    ))}
+                </ul>
+              )}
+            </div>)
+            }
+
+
+
+            <div className="flex justify-end space-x-3 pt-4">
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-red-500 rounded-md"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+              )}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
               >
-                i
+                {isSubmitting ? 'Processing...' : isEdit ? 'Update Project' : 'Add Project'}
               </button>
             </div>
-            <input
-              id="projectName"
-              type="text"
-              placeholder="Enter project name"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="prodUrl" className="block text-sm font-medium text-gray-700 mb-1">
-              Production URL
-            </label>
-            <input
-              id="prodUrl"
-              type="url"
-              placeholder="https://api.example.com/swagger.json"
-              value={prodUrl}
-              onChange={(e) => setProdUrl(e.target.value)}
-              className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="preprodUrl" className="block text-sm font-medium text-gray-700 mb-1">
-              Pre-production URL
-            </label>
-            <input
-              id="preprodUrl"
-              type="url"
-              placeholder="https://preprod.example.com/swagger.json"
-              value={preprodUrl}
-              onChange={(e) => setPreprodUrl(e.target.value)}
-              className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="pgUrl" className="block text-sm font-medium text-gray-700 mb-1">
-              Playground URL
-            </label>
-            <input
-              id="pgUrl"
-              type="url"
-              placeholder="https://playground.example.com/swagger.json"
-              value={pgUrl}
-              onChange={(e) => setPgUrl(e.target.value)}
-              className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-3 pt-4">
-            {onClose && (
+          </form>
+        ) : (
+          <form className="space-y-4" onSubmit={handleAddTeam}>
+            <div>
+              <label htmlFor="teamName" className="block text-sm font-medium text-gray-700 mb-1">
+                Team Name *
+              </label>
+              <input
+                id="teamName"
+                type="text"
+                placeholder="Enter team name"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                className="w-full border border-gray-300 p-2 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                required
+              />
+            </div>
+            <div className="flex justify-end space-x-3 pt-4">
+              {onClose && (
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-red-500 rounded-md"
+                  disabled={isSubmitting}
+                >
+                  Cancel
+                </button>
+              )}
               <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-red-500 rounded-md"
+                type="submit"
                 disabled={isSubmitting}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
               >
-                Cancel
+                Add Team
               </button>
-            )}
+            </div>
+            
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
-            >
-              {isSubmitting ? 'Processing...' : isEdit ? 'Update Project' : 'Add Project'}
-            </button>
-          </div>
-        </form>
+          </form>
+        )}
       </div>
 
-      {/* Instructions Modal */}
       {showInstructions && (
         <Instruction onClose={() => setShowInstructions(false)} />
       )}

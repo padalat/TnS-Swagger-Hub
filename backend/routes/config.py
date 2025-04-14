@@ -1,46 +1,61 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query, Depends,HTTPException
 from controllers.configController import (
-    add_project,
-    get_all_projects,
-    update_project,
-    delete_project,
-    get_recent_activities,
-    get_project_statistics
+    create_new_project,
+    retrieve_team_projects,
+    update_existing_project,
+    delete_existing_project,
+    fetch_recent_activity_logs,
+    fetch_project_statistics,
+    create_new_team,
+    get_all_teams
 )
 from pydantic import BaseModel
+from dependencies.permissions import require_read_permission, require_write_permission, require_admin_permission
 
-# Reuse the same Pydantic model from the controller if needed
+# Updated model: removed team_name field for non-admin endpoints
 class ProjectCreate(BaseModel):
     projectname: str
-    team_name: str
     prod_url: str = None
     pre_prod_url: str = None
     pg_url: str = None
+    team_name:str=None
+
+class TeamCreate(BaseModel):
+    team_name: str
 
 router = APIRouter()
 
-@router.post("/projects/add")
-async def route_add_project(project: ProjectCreate):
-    return await add_project(project)
+@router.post("/teams/add", dependencies=[Depends(require_admin_permission)])
+async def route_create_team(team: TeamCreate):
+    return await create_new_team(team)
 
-@router.get("/projects/get/all")
-async def route_get_all_projects(team_name: str):
-    return await get_all_projects(team_name)
+@router.post("/projects/add", dependencies=[Depends(require_write_permission)])
+async def route_create_project(body: ProjectCreate, user: dict = Depends(require_write_permission)):
+    return await create_new_project(body,user)
 
-@router.put("/projects/update/{uuid}")
-async def route_update_project(uuid: str, project: ProjectCreate):
-    return await update_project(uuid, project)
+@router.get("/projects/team/get/all", dependencies=[Depends(require_read_permission)])
+async def route_get_team_projects(team_name: str = None, user: dict = Depends(require_read_permission)):
+    return await retrieve_team_projects(team_name,user)
 
-@router.delete("/projects/delete/{uuid}")
-async def route_delete_project(uuid: str):
-    return await delete_project(uuid)
 
-@router.get("/activities/recent")
-async def route_get_recent_activities(k: int = Query(10, description="Number of recent activities to retrieve")):
-    """Get the k most recent activities"""
-    return await get_recent_activities(k)
+@router.put("/projects/update/{project_uuid}", dependencies=[Depends(require_write_permission)])
+async def route_update_project(project_uuid: str, body: ProjectCreate, user: dict = Depends(require_write_permission)):
+    return await update_existing_project(project_uuid, body,user)
 
-@router.get("/statistics")
-async def route_get_statistics():
-    """Get database statistics including project count"""
-    return await get_project_statistics()
+@router.delete("/projects/delete/{uuid}", dependencies=[Depends(require_write_permission)])
+async def route_delete_project(uuid: str, user: dict = Depends(require_write_permission)):
+    return await delete_existing_project(uuid,user)
+
+
+@router.get("/activities/recent", dependencies=[Depends(require_read_permission)])
+async def route_get_recent_activities(k: int = Query(10, description="Number of recent activities to retrieve"),
+                                      user: dict = Depends(require_read_permission)):
+    return await fetch_recent_activity_logs(k,user)
+
+@router.get("/statistics", dependencies=[Depends(require_read_permission)])
+async def route_get_statistics(user: dict = Depends(require_read_permission)):
+    return await fetch_project_statistics(user)
+
+@router.get("/teams/get/all", dependencies=[Depends(require_read_permission)])
+async def route_get_teams(user: dict = Depends(require_read_permission)):
+    return await get_all_teams(user)
