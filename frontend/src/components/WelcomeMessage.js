@@ -6,16 +6,9 @@ import { useContext } from "react";
 
 const WelcomeMessage = () => {
   const [activities, setActivities] = useState([]);
-  const [registeredProjects, setRegisteredProjects] = useState(0);
+  const [stats, setStats] = useState({ totalProjects: 60, apiCalls: 1500, registeredProjects: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
-
-  useEffect(() => {
-    setLoading(true);
-    Promise.all([
-      fetch(`${BASE_API}/activities/recent?k=5`), // Corrected to fetch 5 recent activities
-      fetch(`${BASE_API}/statistics`),
 
   const { token } = useContext(AuthContext);
 
@@ -33,7 +26,6 @@ const WelcomeMessage = () => {
           "Authorization": `Bearer ${token}`
         }     
       })
-
     ])
       .then(([resActivities, resStats]) => {
         if (!resActivities.ok || !resStats.ok) {
@@ -42,8 +34,12 @@ const WelcomeMessage = () => {
         return Promise.all([resActivities.json(), resStats.json()]);
       })
       .then(([activitiesData, statsData]) => {
-        setActivities(activitiesData || []);
-        setRegisteredProjects(statsData.registered_projects || 0);
+        setActivities(activitiesData);
+        setStats({
+          totalProjects: 60,
+          apiCalls: 1500,
+          registeredProjects: statsData.registered_projects
+        });
         setError(null);
       })
       .catch((err) => {
@@ -53,36 +49,47 @@ const WelcomeMessage = () => {
       .finally(() => setLoading(false));
   }, []);
 
+  // Format timestamp to readable format (convert from ISO to local time)
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
-    return date.toLocaleString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
+    return date.toLocaleString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
     });
   };
-
+  
   return (
     <div className="flex flex-col gap-8 p-6 min-h-screen">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-6 text-center shadow-lg">
-        <h1 className="text-4xl font-bold">Welcome to FlipDocs</h1>
-        <p className="text-lg mt-2">Crafting Innovative API Journeys</p>
+      <div className="bg-white  rounded-lg p-6 text-center">
+        <h1 className="text-4xl font-bold text-gray-800">Welcome to FlipDocs</h1>
+        <p className="text-lg text-gray-600 mt-2">Crafting Innovative API Journeys</p>
       </div>
 
-      {/* Registered Projects Section */}
+      {/* Statistics Section */}
       <div className="bg-white shadow-md rounded-lg p-6">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">Registered Projects</h3>
-        <div className="text-center">
-          <h2 className="text-4xl font-bold text-blue-600">{registeredProjects}</h2>
-          <p className="text-sm text-gray-600 mt-2">Total Registered Projects</p>
+        <h3 className="text-2xl font-bold text-gray-800 mb-4">Statistics</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="shadow-sm rounded-lg p-6 text-center">
+            <h2 className="text-3xl font-bold text-gray-800">{stats.totalProjects}</h2>
+            <p className="text-sm text-gray-600 mt-2">Total Projects</p>
+          </div>
+          <div className="shadow-sm rounded-lg p-6 text-center">
+            <h2 className="text-3xl font-bold text-gray-800">{stats.registeredProjects}</h2>
+            <p className="text-sm text-gray-600 mt-2">Registered Projects</p>
+          </div>
+          <div className="shadow-sm rounded-lg p-6 text-center">
+            <h2 className="text-3xl font-bold text-gray-800">{stats.apiCalls}</h2>
+            <p className="text-sm text-gray-600 mt-2">API Calls</p>
+          </div>
         </div>
       </div>
 
-      {/* Recent Activity Section */}
+      {/* Recent Activity Section - Only show if there are activities */}
       {loading ? (
         <div className="bg-white shadow-md rounded-lg p-6">
           <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
@@ -95,7 +102,7 @@ const WelcomeMessage = () => {
           <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
           <p className="text-red-500">{error}</p>
         </div>
-      ) : activities.length > 0 ? (
+      ) : activities && activities.length > 0 ? (
         <div className="bg-white shadow-md rounded-lg p-6">
           <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
           <ul className="text-gray-600">
@@ -109,12 +116,7 @@ const WelcomeMessage = () => {
             ))}
           </ul>
         </div>
-      ) : (
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
-          <p className="text-gray-500">No recent activity</p>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 };
