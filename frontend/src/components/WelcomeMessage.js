@@ -64,13 +64,13 @@ const WelcomeMessage = () => {
   
   return (
     <div className="flex flex-col gap-8 p-6 min-h-screen">
-      {/* Header */}
-      <div className="bg-white  rounded-lg p-6 text-center">
-        <h1 className="text-4xl font-bold text-gray-800">Welcome to FlipDocs</h1>
-        <p className="text-lg text-gray-600 mt-2">Crafting Innovative API Journeys</p>
+      
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-6 text-center shadow-lg">
+        <h1 className="text-4xl font-bold">Welcome to FlipDocs</h1>
+        <p className="text-lg mt-2">API Documentation</p>
       </div>
 
-      {/* Statistics Section */}
+      
       <div className="bg-white shadow-md rounded-lg p-6">
         <h3 className="text-2xl font-bold text-gray-800 mb-4">Statistics</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -89,7 +89,7 @@ const WelcomeMessage = () => {
         </div>
       </div>
 
-      {/* Recent Activity Section - Only show if there are activities */}
+     
       {loading ? (
         <div className="bg-white shadow-md rounded-lg p-6">
           <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>

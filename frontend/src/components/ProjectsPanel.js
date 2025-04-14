@@ -16,7 +16,11 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   const [deletePrompt, setDeletePrompt] = useState(null);
   const [confirmText, setConfirmText] = useState("");
   const [activeMenu, setActiveMenu] = useState(null);
+<<<<<<< Updated upstream
   const menuRef = useRef(null);
+=======
+  const [activeProject, setActiveProject] = useState(null); 
+>>>>>>> Stashed changes
   const currentId = searchParams.get("id");
   const navigate = useNavigate();
 
@@ -26,6 +30,11 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   useEffect(() => {
     if (!isAdmin && teams?.length === 0 && decoded?.team_name) {
       setShowProjects(decoded.team_name);
+<<<<<<< Updated upstream
+=======
+    } else if (isAdmin) {
+      setShowProjects("TnS"); 
+>>>>>>> Stashed changes
     }
   }, [teams, decoded, isAdmin]);
 
@@ -111,8 +120,19 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 
   const handleMenuClick = (e, projectId) => {
     e.stopPropagation();
+<<<<<<< Updated upstream
     e.preventDefault();
     setActiveMenu(activeMenu === projectId ? null : projectId);
+=======
+    setActiveMenu((prev) => (prev === projectId ? null : projectId));
+  };
+
+  const handleProjectClick = (project) => {
+    setSelectedProject(project);
+    setActiveProject(project.uuid); 
+    navigate(`?id=${project.uuid}`);
+    setSearch(""); 
+>>>>>>> Stashed changes
   };
 
   const filteredProjects = search
@@ -164,6 +184,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
         )}
       </div>
 
+<<<<<<< Updated upstream
       {/* Team Section */}
       {teams?.length > 0 ? (
         teams.map((team) => (
@@ -174,6 +195,82 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
             >
               <span>{team.team_name}</span>
               <span className="ml-auto">{showProjects === team.team_name ? "▼" : "▶"}</span>
+=======
+      <div className="relative z-10">
+        {teams?.length > 0 ? (
+          teams.map((team) => (
+            <div key={team.team_id} className="mb-4">
+              <div
+                className="p-3 mb-2 bg-gray-200 rounded-lg cursor-pointer font-bold flex justify-between items-center select-none pl-4"
+                onClick={() => setShowProjects((prev) => (prev === team.team_name ? null : team.team_name))}
+              >
+                <span>{team.team_name} Team</span>
+                <span className="ml-auto">{showProjects === team.team_name ? "▼" : "▶"}</span>
+              </div>
+
+              {showProjects === team.team_name && (
+                <ul className="pl-4">
+                  {error ? (
+                    <ErrorMessage error={error} />
+                  ) : (
+                    projects.map((project) => (
+                      <li
+                        key={project.uuid}
+                        className={`p-3 mb-2 relative flex justify-between items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
+                          project?.uuid === currentId ? "z-[20] bg-gray-200" : "z-0"
+                        }`}
+                        onClick={() => handleProjectClick(project)}
+                      >
+                        <span className="font-medium">{project.projectname}</span>
+
+                      
+                        {activeProject === project.uuid && (isAdmin || canWrite) && (
+                          <div className="relative menu-container z-50">
+                            <button
+                              className="p-2 rounded-md hover:bg-gray-300 transition-all"
+                              onClick={(e) => handleMenuClick(e, project.uuid)}
+                            >
+                              <FiMoreVertical size={20} />
+                            </button>
+
+                            {activeMenu === project.uuid && (
+                              <div
+                                className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-300 rounded-md shadow-lg z-[100] py-1"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <button
+                                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 flex items-center gap-2 m-0.5 rounded-md"
+                                  onClick={(e) => handleEdit(project, e)}
+                                >
+                                  <span className="text-yellow-500">
+                                    <CiEdit size={20} />
+                                  </span>{" "}
+                                  Edit
+                                </button>
+                                <button
+                                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 flex items-center gap-2 m-0.5 rounded-md"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveMenu(null);
+                                    setDeletePrompt(project);
+                                  }}
+                                >
+                                  <span className="text-red-500">
+                                    <MdDeleteOutline size={20} />
+                                  </span>{" "}
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    ))
+                  )}
+                  {projects.length === 0 && <p className="p-2 text-center">No projects found</p>}
+                </ul>
+              )}
+>>>>>>> Stashed changes
             </div>
 
             {showProjects === team.team_name && (
@@ -249,7 +346,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
         <p className="text-center mt-4 text-gray-500 italic">No team access.</p>
       )}
 
-      {/* Delete Confirmation Modal */}
+  
       {deletePrompt && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[30]">
           <div className="bg-white p-5 rounded-lg shadow-xl w-[400px] text-center">
