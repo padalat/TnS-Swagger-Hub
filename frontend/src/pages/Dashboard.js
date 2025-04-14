@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BASE_API } from "../utils/baseApi";
-import { motion } from "framer-motion"; // For animations
+import { motion } from "framer-motion"; 
 import Loader from "../components/Loader";
 
 const Dashboard = () => {
@@ -13,7 +13,7 @@ const Dashboard = () => {
     setLoading(true);
     Promise.all([
       fetch(`${BASE_API}/statistics`),
-      fetch(`${BASE_API}/activities/recent?k=3`),
+      fetch(`${BASE_API}/activities/recent?k=5`), // Corrected to fetch 5 recent activities
     ])
       .then(([resStats, resActivities]) => {
         if (!resStats.ok || !resActivities.ok) {
@@ -43,10 +43,10 @@ const Dashboard = () => {
         transition={{ duration: 0.8 }}
       >
         <h1 className="text-5xl font-extrabold text-white drop-shadow-lg">
-          Dashboard
+          FlipDocs
         </h1>
         <p className="text-lg text-gray-200 mt-2">
-          A modern, professional overview of your API data
+          API documentation
         </p>
       </motion.div>
 

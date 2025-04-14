@@ -4,15 +4,15 @@ import Loader from "./Loader";
 
 const WelcomeMessage = () => {
   const [activities, setActivities] = useState([]);
-  const [registeredProjects, setRegisteredProjects] = useState(0); // Retain only registered projects
+  const [registeredProjects, setRegisteredProjects] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${BASE_API}/activities/recent?k=3`),
-      fetch(`${BASE_API}/statistics`)
+      fetch(`${BASE_API}/activities/recent?k=5`), // Corrected to fetch 5 recent activities
+      fetch(`${BASE_API}/statistics`),
     ])
       .then(([resActivities, resStats]) => {
         if (!resActivities.ok || !resStats.ok) {
@@ -21,8 +21,8 @@ const WelcomeMessage = () => {
         return Promise.all([resActivities.json(), resStats.json()]);
       })
       .then(([activitiesData, statsData]) => {
-        setActivities(activitiesData);
-        setRegisteredProjects(statsData.registered_projects); // Set registered projects
+        setActivities(activitiesData || []);
+        setRegisteredProjects(statsData.registered_projects || 0);
         setError(null);
       })
       .catch((err) => {
@@ -74,7 +74,7 @@ const WelcomeMessage = () => {
           <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
           <p className="text-red-500">{error}</p>
         </div>
-      ) : activities && activities.length > 0 ? (
+      ) : activities.length > 0 ? (
         <div className="bg-white shadow-md rounded-lg p-6">
           <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
           <ul className="text-gray-600">
@@ -88,7 +88,12 @@ const WelcomeMessage = () => {
             ))}
           </ul>
         </div>
-      ) : null}
+      ) : (
+        <div className="bg-white shadow-md rounded-lg p-6">
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
+          <p className="text-gray-500">No recent activity</p>
+        </div>
+      )}
     </div>
   );
 };

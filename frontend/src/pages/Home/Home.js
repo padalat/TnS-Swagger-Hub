@@ -6,6 +6,7 @@ import AddProjectForm from "../../components/AddProjects";
 import ErrorMessage from "../../components/ErrorMessage"; 
 import { BASE_API } from "../../utils/baseApi";
 import { AuthContext } from "../../contexts/AuthContext";
+import { motion } from "framer-motion";
 
 const Home = () => {
   const [searchParams] = useSearchParams();
@@ -18,12 +19,17 @@ const Home = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const { token, decoded, isAdmin, canRead, canWrite } = useContext(AuthContext);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [registeredProjects, setRegisteredProjects] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [apiStatus, setApiStatus] = useState(null);
   const navigate = useNavigate();
 
   const refreshProjects = () => {
     setRefreshKey(prevKey => prevKey + 1);
   };
- useEffect(() => {
+
+  useEffect(() => {
     const fetchTeams = async () => {
       try {
         const res = await fetch(`${BASE_API}/teams/get/all`, {
@@ -47,9 +53,9 @@ const Home = () => {
 
   useEffect(() => {
     if (projectId && projects.length > 0) {
-      const project = projects.find(p => p.uuid === projectId);
+      const project = projects.find((p) => p.uuid === projectId);
       if (project) {
-        setSelectedProject(project);
+        setSelectedProject(project); 
       } else {
         setSelectedProject(null);
       }
@@ -57,6 +63,10 @@ const Home = () => {
       setSelectedProject(null);
     }
   }, [projectId, projects]);
+
+  useEffect(() => {
+    setRegisteredProjects(projects.length);
+  }, [projects]);
 
   const handleAddProject = (newProject) => {
     setProjects(prev => {
@@ -70,13 +80,13 @@ const Home = () => {
     setEditProject(null);
     refreshProjects();
   };
+
   const handleAddTeam = (newTeam)=>{
     setAllTeams(prev => {
       const updated = [...prev, newTeam];
       return updated;
     });
-  }
-
+  };
 
   const handleUpdateProject = (updatedProject) => {
     setProjects(prev => {
@@ -113,43 +123,114 @@ const Home = () => {
   }
 
   return (
-    <div className="flex min-h-[95vh]">
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
       <ProjectsPanel
-        setAddProject={setAddProject}
         projects={projects}
         setProjects={setProjects}
-        handleEdit={handleEdit}
-        setEditProject={setEditProject}
-        refreshKey={refreshKey}
-        setSelectedProject={setSelectedProject}
         teams={allTeams}
-
-
+        setAddProject={setAddProject}
+        setEditProject={setEditProject}
+        setSelectedProject={setSelectedProject} // Pass setSelectedProject correctly
       />
-      <div className="w-full p-4 flex justify-center items-center">
-        <Swagger selectedProject={selectedProject} />
+
+      {/* Main Content Area */}
+      <div
+        className={`flex-1 relative ${
+          selectedProject ? "bg-white" : "bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600"
+        } p-6`}
+      >
+        {selectedProject ? (
+          // Show Swagger if a project is selected
+          <div className="w-full p-4 flex justify-center items-center">
+            <Swagger selectedProject={selectedProject} />
+          </div>
+        ) : (
+          <>
+            
+            <motion.div
+              className="text-center mb-8"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <h1 className="text-5xl font-extrabold text-white drop-shadow-lg">
+                FlipDocs
+              </h1>
+              <p className="text-lg text-gray-200 mt-2">
+                 API Documentation
+              </p>
+            </motion.div>
+
+            {/* Cards Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl mx-auto">
+              {/* Registered Projects Card */}
+              <motion.div
+                className="bg-gradient-to-r from-white to-blue-100 dark:from-gray-800 dark:to-gray-700 shadow-lg rounded-xl p-6 flex flex-col items-center justify-center hover:shadow-2xl transition-shadow"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6 }}
+              >
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                  Registered Projects
+                </h3>
+                <p className="text-6xl font-extrabold text-blue-600 dark:text-blue-400">
+                  {registeredProjects}
+                </p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  Total number of projects registered in the team.
+                </p>
+              </motion.div>
+
+              {/* Recent API Activity Card */}
+              <motion.div
+                className="bg-gradient-to-r from-white to-blue-100 dark:from-gray-800 dark:to-gray-700 shadow-lg rounded-xl p-6 hover:shadow-2xl transition-shadow"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+              >
+                <h3 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+                  Recent API Activity
+                </h3>
+                {loading ? (
+                  <div className="flex justify-center items-center h-24">
+                    <p className="text-gray-500">Loading...</p>
+                  </div>
+                ) : error ? (
+                  <p className="text-red-500 text-center">{error}</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {apiStatus ? (
+                      <li className="text-gray-700 dark:text-gray-300 text-center">
+                        {apiStatus}
+                      </li>
+                    ) : (
+                      <p className="text-gray-500 text-center">No recent activity</p>
+                    )}
+                  </ul>
+                )}
+              </motion.div>
+            </div>
+          </>
+        )}
       </div>
 
-      {(canWrite || isAdmin) && addProject && (
+      {/* Add Project Modal */}
+      {addProject && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm z-50">
           <AddProjectForm
+            addProject={addProject}
             onAddProject={handleAddProject}
             onUpdateProject={handleUpdateProject}
             editProject={editProject}
             setEditProject={setEditProject}
             setProjects={setProjects}
-            addProject={addProject}
             allTeams={allTeams}
             setAllTeams={setAllTeams}
-            addTeam={addTeam}
-            setAddTeam={setAddTeam}
-            onAddTeam={handleAddTeam}
             onClose={() => {
               setAddProject(false);
               setEditProject(null);
-              setAddTeam(false);
             }}
-
           />
         </div>
       )}

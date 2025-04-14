@@ -16,6 +16,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   const [deletePrompt, setDeletePrompt] = useState(null);
   const [confirmText, setConfirmText] = useState("");
   const [activeMenu, setActiveMenu] = useState(null);
+  const [activeProject, setActiveProject] = useState(null); // Track the active project for showing three dots
   const currentId = searchParams.get("id");
   const navigate = useNavigate();
 
@@ -24,6 +25,8 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   useEffect(() => {
     if (!isAdmin && teams?.length === 0 && decoded?.team_name) {
       setShowProjects(decoded.team_name);
+    } else if (isAdmin) {
+      setShowProjects("TnS"); // Open "TnS" dropdown by default for admins
     }
   }, [teams, decoded, isAdmin]);
 
@@ -119,6 +122,13 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     setActiveMenu((prev) => (prev === projectId ? null : projectId));
   };
 
+  const handleProjectClick = (project) => {
+    setSelectedProject(project);
+    setActiveProject(project.uuid); // Set the active project to show three dots
+    navigate(`?id=${project.uuid}`);
+    setSearch(""); // Clear the search input to hide the search results
+  };
+
   const filteredProjects = search
     ? projects.filter((p) =>
         p.projectname.toLowerCase().includes(search.toLowerCase())
@@ -135,7 +145,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
           placeholder="Search projects..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-[80%] p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-[80%] p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 z-10 relative"
         />
         {(isAdmin || canWrite) && (
           <button
@@ -146,7 +156,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
           </button>
         )}
         {search && (
-          <div className="absolute top-full z-10 left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto">
+          <div className="absolute top-[calc(100%+4px)] z-50 left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto">
             {filteredProjects.length === 0 ? (
               <p className="p-2">No matching projects</p>
             ) : (
@@ -154,11 +164,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                 <div
                   key={project.uuid}
                   className="p-2 hover:bg-blue-100 cursor-pointer"
-                  onClick={() => {
-                    setSearch("");
-                    navigate(`?id=${project.uuid}`);
-                    setSelectedProject(project);
-                  }}
+                  onClick={() => handleProjectClick(project)}
                 >
                   {project.projectname}
                 </div>
@@ -169,86 +175,86 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
       </div>
 
       {/* Team Section */}
-      {teams?.length > 0 ? (
-        teams.map((team) => (
-          <div key={team.team_id} className="mb-4">
-            <div
-              className="p-3 mb-2 bg-gray-200 rounded-lg cursor-pointer font-bold flex justify-between items-center select-none pl-4"
-              onClick={() => setShowProjects((prev) => (prev === team.team_name ? null : team.team_name))}
-            >
-              <span>{team.team_name} Team</span>
-              <span className="ml-auto">{showProjects === team.team_name ? "▼" : "▶"}</span>
-            </div>
+      <div className="relative z-10">
+        {teams?.length > 0 ? (
+          teams.map((team) => (
+            <div key={team.team_id} className="mb-4">
+              <div
+                className="p-3 mb-2 bg-gray-200 rounded-lg cursor-pointer font-bold flex justify-between items-center select-none pl-4"
+                onClick={() => setShowProjects((prev) => (prev === team.team_name ? null : team.team_name))}
+              >
+                <span>{team.team_name} Team</span>
+                <span className="ml-auto">{showProjects === team.team_name ? "▼" : "▶"}</span>
+              </div>
 
-            {showProjects === team.team_name && (
-              <ul className="pl-4">
-                {error ? (
-                  <ErrorMessage error={error} />
-                ) : (
-                  projects.map((project) => (
-                    <li
-                      key={project.uuid}
-                      className={`p-3 mb-2 relative flex justify-between items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
-                        project?.uuid === currentId ? "z-[20] bg-gray-200" : "z-0"
-                      }`}
-                      onClick={() => {
-                        navigate(`?id=${project.uuid}`);
-                        setSelectedProject(project);
-                      }}
-                    >
-                      <span className="font-medium">{project.projectname}</span>
+              {showProjects === team.team_name && (
+                <ul className="pl-4">
+                  {error ? (
+                    <ErrorMessage error={error} />
+                  ) : (
+                    projects.map((project) => (
+                      <li
+                        key={project.uuid}
+                        className={`p-3 mb-2 relative flex justify-between items-center border border-gray-300 rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-100 hover:scale-[1.02] ${
+                          project?.uuid === currentId ? "z-[20] bg-gray-200" : "z-0"
+                        }`}
+                        onClick={() => handleProjectClick(project)}
+                      >
+                        <span className="font-medium">{project.projectname}</span>
 
-                      {(isAdmin || canWrite) && (
-                        <div className="relative menu-container">
-                          <button
-                            className="p-2 rounded-md hover:bg-gray-300 transition-all"
-                            onClick={(e) => handleMenuClick(e, project.uuid)}
-                          >
-                            <FiMoreVertical size={20} />
-                          </button>
-
-                          {activeMenu === project.uuid && (
-                            <div
-                              className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-300 rounded-md shadow-lg z-[100] py-1"
-                              onClick={(e) => e.stopPropagation()}
+                        {/* Show three dots only for the active project */}
+                        {activeProject === project.uuid && (isAdmin || canWrite) && (
+                          <div className="relative menu-container z-50">
+                            <button
+                              className="p-2 rounded-md hover:bg-gray-300 transition-all"
+                              onClick={(e) => handleMenuClick(e, project.uuid)}
                             >
-                              <button
-                                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 flex items-center gap-2 m-0.5 rounded-md"
-                                onClick={(e) => handleEdit(project, e)}
+                              <FiMoreVertical size={20} />
+                            </button>
+
+                            {activeMenu === project.uuid && (
+                              <div
+                                className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-300 rounded-md shadow-lg z-[100] py-1"
+                                onClick={(e) => e.stopPropagation()}
                               >
-                                <span className="text-yellow-500">
-                                  <CiEdit size={20} />
-                                </span>{" "}
-                                Edit
-                              </button>
-                              <button
-                                className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 flex items-center gap-2 m-0.5 rounded-md"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveMenu(null);
-                                  setDeletePrompt(project);
-                                }}
-                              >
-                                <span className="text-red-500">
-                                  <MdDeleteOutline size={20} />
-                                </span>{" "}
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </li>
-                  ))
-                )}
-                {projects.length === 0 && <p className="p-2 text-center">No projects found</p>}
-              </ul>
-            )}
-          </div>
-        ))
-      ) : (
-        <p className="text-center mt-4 text-gray-500 italic">No team access.</p>
-      )}
+                                <button
+                                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 flex items-center gap-2 m-0.5 rounded-md"
+                                  onClick={(e) => handleEdit(project, e)}
+                                >
+                                  <span className="text-yellow-500">
+                                    <CiEdit size={20} />
+                                  </span>{" "}
+                                  Edit
+                                </button>
+                                <button
+                                  className="w-full text-left px-4 py-2 hover:bg-gray-100 text-gray-700 flex items-center gap-2 m-0.5 rounded-md"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveMenu(null);
+                                    setDeletePrompt(project);
+                                  }}
+                                >
+                                  <span className="text-red-500">
+                                    <MdDeleteOutline size={20} />
+                                  </span>{" "}
+                                  Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    ))
+                  )}
+                  {projects.length === 0 && <p className="p-2 text-center">No projects found</p>}
+                </ul>
+              )}
+            </div>
+          ))
+        ) : (
+          <p className="text-center mt-4 text-gray-500 italic">No team access.</p>
+        )}
+      </div>
 
       {/* Delete Confirmation Modal */}
       {deletePrompt && (
