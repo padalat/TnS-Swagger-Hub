@@ -45,7 +45,6 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      // Only close the menu if clicked outside the menu
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setActiveMenu(null);
       }
@@ -189,7 +188,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                   >
                     <span className="font-medium">{project.projectname}</span>
                     
-                    <div className="relative">
+                    <div className="relative" ref={menuRef}>
                       <button
                         className={`p-2 rounded-md hover:bg-gray-300 transition-all  ${currentId === project.uuid ? "block" :"hidden"}`}
                         onClick={(e) => handleMenuClick(e, project.uuid)}
@@ -199,7 +198,6 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                       
                       {activeMenu === project.uuid && (
                         <div 
-                          ref={menuRef}
                           className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-300 rounded-md shadow-lg z-[100] py-1"
                           onClick={(e) => e.stopPropagation()}
                         >
