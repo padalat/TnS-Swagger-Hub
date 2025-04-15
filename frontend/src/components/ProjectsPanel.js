@@ -8,28 +8,33 @@ import { MdDeleteOutline } from "react-icons/md";
 import { CiEdit } from "react-icons/ci";
 import { AuthContext } from '../contexts/AuthContext';
 
-const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProject, setEditProject, refreshKey, teams }) => {
+const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProject, setEditProject, refreshKey, teams ,selectedProject}) => {
   const [search, setSearch] = useState("");
+  const [teamSearch, setTeamSearch] = useState("");
+  const [filteredTeams, setFilteredTeams] = useState([]);
   const [error, setError] = useState(null);
   const [searchParams] = useSearchParams();
   const [showProjects, setShowProjects] = useState(null);
   const [deletePrompt, setDeletePrompt] = useState(null);
   const [confirmText, setConfirmText] = useState("");
   const [activeMenu, setActiveMenu] = useState(null);
+  const [selectedTeam,setSelectedTeam]=useState();
+  const [selectedSearchProject,setSelectedSearchProject]=useState(false);
+  const [showDropdown, setShowDropdown] = useState(false); // used for team search dropdown
   const menuRef = useRef(null);
+  const teamSearchRef = useRef(null);
+  const projectSearchRef = useRef(null);
   const currentId = searchParams.get("id");
   const navigate = useNavigate();
 
   const { token, isAdmin, canRead, canWrite, decoded } = useContext(AuthContext);
 
-  // Set fallback team if user has no visible teams
   useEffect(() => {
     if (!isAdmin && teams?.length === 0 && decoded?.team_name) {
       setShowProjects(decoded.team_name);
     }
   }, [teams, decoded, isAdmin]);
 
-  // Fetch projects when a team is selected
   useEffect(() => {
     if (showProjects === null) return;
 
@@ -64,6 +69,26 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleTeamSearchClickOutside = (event) => {
+      if (teamSearchRef.current && !teamSearchRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleTeamSearchClickOutside);
+    return () => document.removeEventListener("mousedown", handleTeamSearchClickOutside);
+  }, []);
+
+  useEffect(() => {
+    const handleProjectSearchClickOutside = (event) => {
+      if (projectSearchRef.current && !projectSearchRef.current.contains(event.target)) {
+        setSelectedSearchProject(true);
+      }
+    };
+    document.addEventListener("mousedown", handleProjectSearchClickOutside);
+    return () => document.removeEventListener("mousedown", handleProjectSearchClickOutside);
   }, []);
 
   const handleEdit = (project, e) => {
@@ -125,46 +150,105 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     <div className="relative w-[25%] bg-gray-50 p-4 shadow-xl">
       <h2 className="text-lg font-bold mb-4 text-center">Projects</h2>
 
-      <div className="w-full mb-4 flex justify-center items-center h-[40px] gap-2 relative">
-        <input
-          type="text"
-          placeholder="Search projects..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-[80%] p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        {(isAdmin || canWrite) && (
-          <button
-            onClick={() => setAddProject({ isEditing: false })}
-            className="p-2 w-[20%] h-[40px] bg-blue-600 text-white rounded-md flex justify-center items-center hover:bg-blue-700 transition-colors"
-          >
-            +
-          </button>
-        )}
-        {search && (
-          <div className="absolute top-full z-10 left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto">
-            {filteredProjects.length === 0 ? (
-              <p className="p-2">No matching projects</p>
-            ) : (
-              filteredProjects.map((project) => (
-                <div
-                  key={project.uuid}
-                  className="p-2 hover:bg-blue-100 cursor-pointer"
-                  onClick={() => {
-                    setSearch("");
-                    navigate(`?id=${project.uuid}`);
-                    setSelectedProject(project);
-                  }}
-                >
-                  {project.projectname}
-                </div>
-              ))
-            )}
-          </div>
-        )}
-      </div>
+      {/* Team Search for Admins */}
+      {isAdmin && (
+        <div className="w-full mb-4 relative" ref={teamSearchRef}>
+          <input
+            type="text"
+            placeholder="Search teams..."
+            value={teamSearch}
+            onChange={(e) => {
+              const val = e.target.value;
+              setTeamSearch(val);
+              // Clear any previous selection so the input remains editable
+              setSelectedTeam("");
+              setFilteredTeams(
+                teams.filter((team) =>
+                  team.team_name.toLowerCase().includes(val.toLowerCase())
+                )
+              );
+              setShowDropdown(true);
+            }}
+            onFocus={() => setShowDropdown(true)} // Added: show dropdown on focus
+            className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {showDropdown && teamSearch && (
+            <div className="absolute top-full left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto z-10">
+              {filteredTeams.length === 0 ? (
+                <p className="p-2">No matching teams</p>
+              ) : (
+                filteredTeams.map((team) => (
+                  <div
+                    key={team.team_id}
+                    className="p-2 hover:bg-blue-100 cursor-pointer"
+                    onClick={() => {
+                      // When a team is selected, update both teamSearch and selectedTeam
+                      setTeamSearch(team.team_name);
+                      setSelectedTeam(team.team_name);
+                      setShowDropdown(false);
+                      // Optionally, set the projects for the selected team:
+                      setShowProjects(team.team_name);
+                    }}
+                  >
+                    {team.team_name}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
-      {/* Team Section */}
+      {/* Project Search */}
+      {(isAdmin && showProjects) || (!isAdmin && decoded?.team_name) ? (
+        <div className="w-full mb-4 flex justify-center items-center h-[40px] gap-2 relative" ref={projectSearchRef}>
+          <input
+            type="text"
+            placeholder="Search projects..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setSelectedSearchProject(false);
+            }}
+            onFocus={() => {
+              setSelectedSearchProject(false); // Reset so dropdown appears on focus
+            }}
+            className="w-[80%] p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {(isAdmin || canWrite) && (
+            <button
+              onClick={() => setAddProject({ isEditing: false })}
+              className="p-2 w-[20%] h-[40px] bg-blue-600 text-white rounded-md flex justify-center items-center hover:bg-blue-700 transition-colors"
+            >
+              +
+            </button>
+          )}
+          { (search && !selectedSearchProject) && (
+            <div className="absolute top-full z-10 left-0 w-full bg-white border border-gray-300 mt-1 rounded-md shadow-lg max-h-40 overflow-auto">
+              {(filteredProjects.length === 0 && search.length!=0) ? (
+                <p className="p-2">No matching projects</p>
+              ) : (
+                filteredProjects.map((project) => (
+                  <div
+                    key={project.uuid}
+                    className="p-2 hover:bg-blue-100 cursor-pointer"
+                    onClick={() => {
+                      setSelectedSearchProject(true);
+                      setSearch(project.projectname); // update search input with project name
+                      navigate(`?id=${project.uuid}`);
+                      setSelectedProject(project);
+                    }}
+                  >
+                    {project.projectname}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {/* Team + Projects UI */}
       {teams?.length > 0 ? (
         teams.map((team) => (
           <div key={team.team_id} className="mb-4">
@@ -249,7 +333,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
         <p className="text-center mt-4 text-gray-500 italic">No team access.</p>
       )}
 
-  
+      {/* Delete Confirmation Modal */}
       {deletePrompt && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[30]">
           <div className="bg-white p-5 rounded-lg shadow-xl w-[400px] text-center">

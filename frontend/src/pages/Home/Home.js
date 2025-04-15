@@ -117,6 +117,7 @@ const Home = () => {
         setAddProject={setAddProject}
         projects={projects}
         setProjects={setProjects}
+        selectedProject={selectedProject}
         handleEdit={handleEdit}
         setEditProject={setEditProject}
         refreshKey={refreshKey}
@@ -126,6 +127,7 @@ const Home = () => {
 
       />
       <div className="w-full p-4 flex justify-center items-center">
+        
         <Swagger selectedProject={selectedProject} />
       </div>
 
