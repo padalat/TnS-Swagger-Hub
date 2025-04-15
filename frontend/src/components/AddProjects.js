@@ -41,6 +41,8 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
       setProdUrl(data.prod_url || "");
       setPgUrl(data.pg_url || "");
       setSelectedTeam(data.team_name || "");
+      setTeamName(data.team_name || ""); // pre-fill the team search input
+      setIsTeamSelected(true);        // mark team as valid so it doesn't trigger error
     } else {
       setIsEdit(false);
       setProjectName("");
@@ -339,7 +341,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
                 type="text"
                 id="teamSearch"
                 placeholder="Search team..."
-                value={selectedTeam} // should be teamName
+                value={teamName} // Changed from selectedTeam to teamName to make it editable
                 onChange={(e) => {
                   setTeamName(e.target.value);
                   setShowDropdown(true);
