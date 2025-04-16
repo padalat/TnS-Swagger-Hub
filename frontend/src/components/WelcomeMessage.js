@@ -16,16 +16,16 @@ const WelcomeMessage = () => {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${BASE_API}/activities/recent?k=3`,{
-        "headers": {
-          "Authorization": `Bearer ${token}`
-        }     
+      fetch(`${BASE_API}/activities/recent?k=3`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }),
-      fetch(`${BASE_API}/statistics`,{
-        "headers": {
-          "Authorization": `Bearer ${token}`
-        }     
-      })
+      fetch(`${BASE_API}/statistics`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
     ])
       .then(([resActivities, resStats]) => {
         if (!resActivities.ok || !resStats.ok) {
@@ -38,7 +38,7 @@ const WelcomeMessage = () => {
         setStats({
           totalProjects: 60,
           apiCalls: 1500,
-          registeredProjects: statsData.registered_projects
+          registeredProjects: statsData.registered_projects,
         });
         setError(null);
       })
@@ -52,59 +52,55 @@ const WelcomeMessage = () => {
   // Format timestamp to readable format (convert from ISO to local time)
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
-    return date.toLocaleString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+    return date.toLocaleString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     });
   };
-  
+
   return (
-    <div className="flex flex-col gap-8 p-6 min-h-screen">
-      
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-6 text-center shadow-lg">
-        <h1 className="text-4xl font-bold">Welcome to FlipDocs</h1>
-        <p className="text-lg mt-2">API Documentation</p>
+    <div className="flex flex-col gap-8 p-6 min-h-screen bg-gradient-to-br from-gray-100 to-gray-200">
+      {/* Welcome Section */}
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-8 text-center shadow-lg transform transition duration-500 hover:scale-105">
+        <h1 className="text-5xl font-extrabold tracking-wide">
+          Welcome to <span className="text-yellow-400">FlipDocs</span>
+        </h1>
+        <p className="text-lg mt-4 font-light">Your API Documentation Hub</p>
       </div>
 
-      
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">Statistics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="shadow-sm rounded-lg p-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-800">{stats.totalProjects}</h2>
-            <p className="text-sm text-gray-600 mt-2">Total Projects</p>
-          </div>
-          <div className="shadow-sm rounded-lg p-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-800">{stats.registeredProjects}</h2>
-            <p className="text-sm text-gray-600 mt-2">Registered Projects</p>
-          </div>
-          <div className="shadow-sm rounded-lg p-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-800">{stats.apiCalls}</h2>
-            <p className="text-sm text-gray-600 mt-2">API Calls</p>
-          </div>
-        </div>
+      {/* Registered Projects Section */}
+      <div className="bg-white shadow-md rounded-lg p-6 text-center transform transition duration-500 hover:scale-105">
+        {loading ? (
+          <p className="text-lg text-gray-600 animate-pulse">Loading...</p>
+        ) : error ? (
+          <p className="text-red-500">{error}</p>
+        ) : (
+          <>
+            <h2 className="text-4xl font-bold text-blue-600">{stats.registeredProjects}</h2>
+            <p className="text-lg text-gray-600 mt-2">Registered Projects</p>
+          </>
+        )}
       </div>
 
-     
       {loading ? (
         <div className="bg-white shadow-md rounded-lg p-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent Activity</h3>
           <div className="flex justify-center py-4">
             <Loader />
           </div>
         </div>
       ) : error ? (
         <div className="bg-white shadow-md rounded-lg p-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent Activity</h3>
           <p className="text-red-500">{error}</p>
         </div>
       ) : activities && activities.length > 0 ? (
         <div className="bg-white shadow-md rounded-lg p-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
+          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent Activity</h3>
           <ul className="text-gray-600">
             {activities.map((activity) => (
               <li key={activity.uuid} className="py-3">
