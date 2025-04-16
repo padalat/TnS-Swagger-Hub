@@ -5,7 +5,10 @@ import Instruction from "./Instruction";
 import {AuthContext} from '../contexts/AuthContext'
 import { useContext } from "react";
 
-const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject, setProjects, onClose,allTeams,setAllTeams ,addTeam,setAddTeam,onAddTeam}) => {
+// Refined layout for Add Team and Add CSV dialogs to improve visual alignment and space utilization
+const dialogBoxStyle = "bg-white p-6 rounded-lg shadow-lg w-full max-w-md h-[700px] flex flex-col";
+
+const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject, setProjects, onClose, allTeams, setAllTeams, addTeam, setAddTeam, onAddTeam, onCSVSubmit }) => {
   const [projectName, setProjectName] = useState("");
   const [preprodUrl, setPreprodUrl] = useState("");
   const [prodUrl, setProdUrl] = useState("");
@@ -18,7 +21,9 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
   const [teamName, setTeamName] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [isTeamSelected, setIsTeamSelected] = useState(false);
-
+  const [showAddCSV, setShowAddCSV] = useState(false);
+  const [csvFile, setCsvFile] = useState(null);
+  const [csvMessage, setCsvMessage] = useState("");
 
   const navigate = useNavigate();
 
@@ -82,23 +87,23 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
       setProjectName("");
       onAddTeam(data);
 
-      navigate("/");
+      // Redirect to Add Project dialog
+      setShowAdd(true);
+      setShowAddCSV(false);
+
       setTimeout(() => {
         setMessage("");
         if (onClose) {
           onClose();
-        } else {
-          navigate("/");
         }
       }, 0);
-      
     } catch (error) {
       console.error("Error adding team:", error);
       setMessage(error.message || "Error processing team. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -210,9 +215,57 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
     setShowInstructions(prev => !prev);
   };
 
+  const handleCSVUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type === "text/csv") {
+      setCsvFile(file);
+      setCsvMessage("CSV file uploaded successfully.");
+    } else {
+      setCsvMessage("Please upload a valid .csv file.");
+    }
+  };
+
+  const handleCSVDragDrop = (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === "text/csv") {
+      setCsvFile(file);
+      setCsvMessage("CSV file uploaded successfully.");
+    } else {
+      setCsvMessage("Please upload a valid .csv file.");
+    }
+  };
+
+  const handleCSVDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleCSVSubmit = () => {
+    if (csvFile) {
+      console.log("CSV file submitted:", csvFile);
+      setCsvMessage("CSV file submitted successfully.");
+
+      // Redirect to Add Project dialog
+      setShowAdd(true);
+      setShowAddCSV(false);
+
+      // Simulate submitting the file and updating the panel
+      if (onCSVSubmit) {
+        onCSVSubmit(csvFile);
+      }
+
+      // Close the dialog
+      if (onClose) {
+        onClose();
+      }
+    } else {
+      setCsvMessage("Please upload a CSV file before submitting.");
+    }
+  };
+
   return (
     <div className="relative flex flex-col items-center p-6 w-full">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-md">
+      <div className={dialogBoxStyle}>
         <h2 className="text-xl font-bold mb-4">
           {isEdit ? "Edit Project" :
           isAdmin ? 
@@ -229,6 +282,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
               className="px-4 py-2 bg-blue-500 text-white rounded"
               onClick={() => {
                 setShowAdd(true);
+                setShowAddCSV(false);
                 setProjectName("");
                 setPreprodUrl("");
                 setProdUrl("");
@@ -242,6 +296,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
               className="px-4 py-2 bg-green-500 text-white rounded"
               onClick={() => {
                 setShowAdd(false);
+                setShowAddCSV(false);
                 setProjectName("");
                 setPreprodUrl("");
                 setProdUrl("");
@@ -250,6 +305,17 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
               }}
             >
               Add New Team
+            </button>
+            <button
+              className="px-4 py-2 bg-purple-500 text-white rounded"
+              onClick={() => {
+                setShowAdd(false);
+                setShowAddCSV(true);
+                setCsvFile(null);
+                setCsvMessage("");
+              }}
+            >
+              Add CSV
             </button>
           </div>
         )}
@@ -398,9 +464,51 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
               </button>
             </div>
           </form>
+        ) : showAddCSV ? (
+          <div className="flex flex-col justify-between h-full">
+            <div className="flex-grow flex items-center justify-center">
+              <div
+                onDrop={handleCSVDragDrop}
+                onDragOver={handleCSVDragOver}
+                className="border-2 border-dashed border-gray-300 p-6 rounded-md text-center w-3/4"
+              >
+                <p className="text-gray-500">Drag and drop your .csv file here</p>
+                <p className="text-gray-500">or</p>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleCSVUpload}
+                  className="mt-2"
+                />
+              </div>
+            </div>
+            {csvMessage && (
+              <div className={`p-3 rounded ${
+                csvMessage.includes("successfully")
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}>
+                {csvMessage}
+              </div>
+            )}
+            <div className="flex justify-end space-x-3 mt-4">
+              <button
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-red-500 rounded-md"
+                onClick={onClose}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-4 py-2 bg-blue-500 text-white rounded"
+                onClick={handleCSVSubmit}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
         ) : (
-          <form className="space-y-4" onSubmit={handleAddTeam}>
-            <div>
+          <form className="flex flex-col justify-between h-full" onSubmit={handleAddTeam}>
+            <div className="flex-grow">
               <label htmlFor="teamName" className="block text-sm font-medium text-gray-700 mb-1">
                 Team Name *
               </label>
@@ -414,27 +522,21 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
                 required
               />
             </div>
-            <div className="flex justify-end space-x-3 pt-4">
-              {onClose && (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-red-500 rounded-md"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-              )}
+            <div className="flex justify-end space-x-3 mt-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-red-500 rounded-md"
+              >
+                Cancel
+              </button>
               <button
                 type="submit"
-                disabled={isSubmitting}
                 className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
               >
                 Add Team
               </button>
             </div>
-            
-
           </form>
         )}
       </div>

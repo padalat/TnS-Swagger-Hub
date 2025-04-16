@@ -8,7 +8,7 @@ import { MdDeleteOutline } from "react-icons/md";
 import { CiEdit } from "react-icons/ci";
 import { AuthContext } from '../contexts/AuthContext';
 
-const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProject, setEditProject, refreshKey, teams ,selectedProject}) => {
+const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProject, setEditProject, refreshKey, teams, selectedProject, csvFile }) => {
   const [search, setSearch] = useState("");
   const [teamSearch, setTeamSearch] = useState("");
   const [filteredTeams, setFilteredTeams] = useState([]);
@@ -21,8 +21,9 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   const [selectedTeam, setSelectedTeam] = useState();
   const [selectedSearchProject, setSelectedSearchProject] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false); 
-  const [loadingProjects, setLoadingProjects] = useState(false); // State for loading projects
-  const [loadingTeams, setLoadingTeams] = useState(false); // State for loading teams
+  const [loadingProjects, setLoadingProjects] = useState(false); 
+  const [loadingTeams, setLoadingTeams] = useState(false); 
+  const [csvProjects, setCsvProjects] = useState([]); 
   const menuRef = useRef(null);
   const teamSearchRef = useRef(null);
   const projectSearchRef = useRef(null);
@@ -41,7 +42,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     if (showProjects === null) return;
 
     async function fetchProjects() {
-      setLoadingProjects(true); // Set loading state to true when starting to fetch projects
+      setLoadingProjects(true); 
       try {
         const res = await fetch(`${BASE_API}/projects/team/get/all?team_name=${encodeURIComponent(showProjects)}`, {
           headers: {
@@ -58,7 +59,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
       } catch (err) {
         setError(err.message);
       } finally {
-        setLoadingProjects(false); // Set loading state to false after fetch is complete
+        setLoadingProjects(false); 
       }
     }
 
@@ -95,6 +96,22 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     document.addEventListener("mousedown", handleProjectSearchClickOutside);
     return () => document.removeEventListener("mousedown", handleProjectSearchClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (csvFile) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target.result;
+        const rows = text.split("\n").map((row) => row.split(","));
+        const parsedProjects = rows.map(([name, url]) => ({
+          name: name.trim(),
+          url: url.trim(),
+        }));
+        setCsvProjects(parsedProjects);
+      };
+      reader.readAsText(csvFile);
+    }
+  }, [csvFile]);
 
   const handleEdit = (project, e) => {
     if (e) e.stopPropagation();
@@ -155,7 +172,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     <div className="relative w-[25%] bg-gray-50 p-4 shadow-xl">
       <h2 className="text-lg font-bold mb-4 text-center">Projects</h2>
 
-      {/* Team Search for Admins */}
+      
       {isAdmin && (
         <div className="w-full mb-4 relative" ref={teamSearchRef}>
           <input
@@ -173,7 +190,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
               );
               setShowDropdown(true);
             }}
-            onFocus={() => setShowDropdown(true)} // Added: show dropdown on focus
+            onFocus={() => setShowDropdown(true)} 
             className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {showDropdown && teamSearch && (
@@ -201,14 +218,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
         </div>
       )}
 
-      {/* Loader for Teams */}
-      {/* {loadingTeams && (
-        <div className="flex justify-center items-center my-4">
-          <Loader />
-        </div>
-      )} */}
-
-      {/* Project Search */}
+      
       {(isAdmin && showProjects) || (!isAdmin && decoded?.team_name) ? (
         <div className="w-full mb-4 flex justify-center items-center h-[40px] gap-2 relative" ref={projectSearchRef}>
           <input
@@ -353,6 +363,20 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 ) : (
   <p className="text-center mt-4 text-gray-500 italic">No team access.</p>
 )}
+
+      {/* Display CSV Projects */}
+      {csvProjects.length > 0 && (
+        <div className="mt-4">
+          <h3 className="text-lg font-bold mb-2">Uploaded CSV Projects</h3>
+          <ul>
+            {csvProjects.map((project, index) => (
+              <li key={`csv-${index}`} className="mb-2">
+                <span className="font-semibold">{project.name}</span>: {project.url}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Delete Confirmation Modal */}
       {deletePrompt && (
