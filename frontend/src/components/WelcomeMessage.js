@@ -9,7 +9,6 @@ const WelcomeMessage = () => {
   const [stats, setStats] = useState({ totalProjects: 60, apiCalls: 1500, registeredProjects: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [animatedText, setAnimatedText] = useState([]);
 
   const { token } = useContext(AuthContext);
 
@@ -18,15 +17,15 @@ const WelcomeMessage = () => {
     setLoading(true);
     Promise.all([
       fetch(`${BASE_API}/activities/recent?k=3`, {
-        "headers": {
-          "Authorization": `Bearer ${token}`
-        }
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }),
       fetch(`${BASE_API}/statistics`, {
-        "headers": {
-          "Authorization": `Bearer ${token}`
-        }
-      })
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }),
     ])
       .then(([resActivities, resStats]) => {
         if (!resActivities.ok || !resStats.ok) {
@@ -39,7 +38,7 @@ const WelcomeMessage = () => {
         setStats({
           totalProjects: 60,
           apiCalls: 1500,
-          registeredProjects: statsData.registered_projects
+          registeredProjects: statsData.registered_projects,
         });
         setError(null);
       })
@@ -50,29 +49,16 @@ const WelcomeMessage = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Animate "FlipDocs" text letter by letter with fade-in effect
-  useEffect(() => {
-    const text = "FlipDocs";
-    let index = -1;
-    setAnimatedText([]); // Reset the animated text before starting
-    const interval = setInterval(() => {
-      setAnimatedText((prev) => [...prev, text[index]]);
-      index++;
-      if (index >= text.length) clearInterval(interval); // Stop when all letters are displayed
-    }, 300); // Adjust speed of animation
-    return () => clearInterval(interval);
-  }, []);
-
   // Format timestamp to readable format (convert from ISO to local time)
   const formatTimestamp = (timestamp) => {
     const date = new Date(timestamp);
-    return date.toLocaleString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
+    return date.toLocaleString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
     });
   };
 
@@ -81,23 +67,7 @@ const WelcomeMessage = () => {
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-8 text-center shadow-lg transform transition duration-500 hover:scale-105">
         <h1 className="text-5xl font-extrabold tracking-wide">
-          Welcome to{" "}
-          <span className="inline-flex">
-            {animatedText.map((letter, index) => (
-              <span
-                key={index}
-                className="text-yellow-400 opacity-0 animate-fade-in"
-                style={{
-                  animationDelay: `${index * 0.3}s`, // Delay each letter
-                  animationFillMode: "forwards", // Ensure the animation persists
-                  display: "inline-block",
-                  opacity: 1, // Explicitly set opacity to ensure visibility
-                }}
-              >
-                {letter}
-              </span>
-            ))}
-          </span>
+          Welcome to <span className="text-yellow-400">FlipDocs</span>
         </h1>
         <p className="text-lg mt-4 font-light">Your API Documentation Hub</p>
       </div>
