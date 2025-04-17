@@ -1,6 +1,8 @@
 import jwt
 from fastapi import Request, HTTPException, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+import re
+from collections import defaultdict
 
 JWT_SECRET = "a-string-secret-at-least-256-bits-long" 
 JWT_ALGORITHM = "HS256"
@@ -18,6 +20,33 @@ class JWTBearer(HTTPBearer):
                 payload = jwt.decode(credentials.credentials, JWT_SECRET, algorithms=[JWT_ALGORITHM])
             except jwt.PyJWTError:
                 raise HTTPException(status_code=403, detail="Invalid token or expired token.")
-            return payload
+            
+            if not payload.get("roles") or not payload.get("roles").get("flipdocs"):
+                raise HTTPException(status_code=403, detail="Invalid authorization code.")
+            
+            return self.convert(payload.get("roles").get("flipdocs"))
         else:
             raise HTTPException(status_code=403, detail="Invalid authorization code.")
+    def convert(self,payload):
+        team_permissions = defaultdict(dict)
+
+        for key, value in payload.items():
+            match = re.match(r"flipdocs\.(\w+)\.(admin|read|write)", key)
+            if match:
+                team, permission = match.groups()
+                team_permissions[team][permission] = value
+        team_name = None
+        for team, perms in team_permissions.items():
+            if any(perms.values()):
+                team_name = team
+                break
+
+        output_obj = {
+            "flipdocs-admin": team_permissions[team_name].get("admin", False),
+            "flipdocs-user-read": team_permissions[team_name].get("read", False),
+            "flipdocs-user-write": team_permissions[team_name].get("write", False),
+            "team_name": team_name
+        }
+
+        return output_obj
+
