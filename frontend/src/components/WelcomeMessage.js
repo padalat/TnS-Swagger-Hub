@@ -63,60 +63,48 @@ const WelcomeMessage = () => {
   };
   
   return (
-    <div className="flex flex-col gap-8 p-6 min-h-screen">
-      
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg p-6 text-center shadow-lg">
-        <h1 className="text-4xl font-bold">Welcome to FlipDocs</h1>
-        <p className="text-lg mt-2">API Documentation</p>
+    <div className="min-h-screen p-6">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-extrabold text-gray-800">
+          Welcome to FlipDocs
+        </h1>
+        <p className="text-lg text-gray-600 mt-4">API Documentation</p>
       </div>
+      <div className="flex flex-col justify-center items-center">
+        <div className="text-center">
+          <div className="mb-8">
+            <p className="text-5xl font-bold text-gray-700 mt-2">{stats.registeredProjects}</p>
+            <p className="text-base text-gray-500 mt-1">Registered Projects</p>
+          </div>
 
-      
-      <div className="bg-white shadow-md rounded-lg p-6">
-        <h3 className="text-2xl font-bold text-gray-800 mb-4">Statistics</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="shadow-sm rounded-lg p-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-800">{stats.totalProjects}</h2>
-            <p className="text-sm text-gray-600 mt-2">Total Projects</p>
-          </div>
-          <div className="shadow-sm rounded-lg p-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-800">{stats.registeredProjects}</h2>
-            <p className="text-sm text-gray-600 mt-2">Registered Projects</p>
-          </div>
-          <div className="shadow-sm rounded-lg p-6 text-center">
-            <h2 className="text-3xl font-bold text-gray-800">{stats.apiCalls}</h2>
-            <p className="text-sm text-gray-600 mt-2">API Calls</p>
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Recent API Activity</h2>
+            {loading ? (
+              <div className="flex justify-center py-4">
+                <Loader />
+              </div>
+            ) : error ? (
+              <p className="text-red-500">{error}</p>
+            ) : activities && activities.length > 0 ? (
+              <ul className="divide-y divide-gray-200 max-w-3xl mx-auto">
+                {activities.map((activity) => (
+                  <li
+                    key={activity.uuid}
+                    className="py-3 px-4 hover:bg-gray-100 transition duration-150"
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-800 font-medium">{activity.message}</span>
+                      <span className="text-sm text-gray-500">{formatTimestamp(activity.time)}</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-500">No recent activity available.</p>
+            )}
           </div>
         </div>
       </div>
-
-     
-      {loading ? (
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
-          <div className="flex justify-center py-4">
-            <Loader />
-          </div>
-        </div>
-      ) : error ? (
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
-          <p className="text-red-500">{error}</p>
-        </div>
-      ) : activities && activities.length > 0 ? (
-        <div className="bg-white shadow-md rounded-lg p-6">
-          <h3 className="text-2xl font-bold text-gray-800 mb-4">Recent API Activity</h3>
-          <ul className="text-gray-600">
-            {activities.map((activity) => (
-              <li key={activity.uuid} className="py-3">
-                <div className="flex flex-col md:flex-row md:justify-between">
-                  <span className="font-medium text-sm text-gray-800">{activity.message}</span>
-                  <span className="text-sm text-gray-500">{formatTimestamp(activity.time)}</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
     </div>
   );
 };
