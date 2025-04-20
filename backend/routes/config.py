@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Depends,HTTPException
+from fastapi import APIRouter, Query, Depends,HTTPException, File, UploadFile
 from controllers.configController import (
     create_new_project,
     retrieve_team_projects,
@@ -7,10 +7,13 @@ from controllers.configController import (
     fetch_recent_activity_logs,
     fetch_project_statistics,
     create_new_team,
-    get_all_teams
+    get_all_teams,
+    upload_projects,
 )
 from pydantic import BaseModel
 from dependencies.permissions import require_read_permission, require_write_permission, require_admin_permission
+from database.database import get_db
+from sqlalchemy.orm import Session
 
 # Updated model: removed team_name field for non-admin endpoints
 class ProjectCreate(BaseModel):
@@ -30,8 +33,10 @@ async def route_create_team(team: TeamCreate):
     return await create_new_team(team)
 
 @router.post("/projects/add", dependencies=[Depends(require_write_permission)])
-async def route_create_project(body: ProjectCreate, user: dict = Depends(require_write_permission)):
-    return await create_new_project(body,user)
+async def route_create_project(body: ProjectCreate, user: dict = Depends(require_write_permission),db: Session = Depends(get_db)):
+    result=await create_new_project(body,user,db)
+    db.commit()
+    return result
 
 @router.get("/projects/team/get/all", dependencies=[Depends(require_read_permission)])
 async def route_get_team_projects(team_name: str = None, user: dict = Depends(require_read_permission)):
@@ -59,3 +64,11 @@ async def route_get_statistics(user: dict = Depends(require_read_permission)):
 @router.get("/teams/get/all", dependencies=[Depends(require_read_permission)])
 async def route_get_teams(user: dict = Depends(require_read_permission)):
     return await get_all_teams(user)
+
+
+
+@router.post("/upload/", dependencies=[Depends(require_write_permission)])
+async def route_upload_file(file: UploadFile = File(...),user: dict = Depends(require_read_permission),db: Session = Depends(get_db)):
+    return await upload_projects(file,user,db)
+
+

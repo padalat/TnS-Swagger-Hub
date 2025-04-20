@@ -43,7 +43,6 @@ async def get_project_swagger_by_uuid_and_env(uuid: str, env: str,user):
     
     
     
-    # Map environment keys to the new database column names
     env_mapping = {
         "prod_url": "production_url",
         "pre_prod_url": "pre_production_url",
@@ -236,16 +235,15 @@ async def delete_event_configs(request):
     headers["host"] = host
     headers["referer"] = f"http://{host}/swagger-ui/index.html"
 
-    # Read request body
     payload_bytes = await request.body()
 
     if payload_bytes:
         try:
-            payload = json.loads(payload_bytes.decode("utf-8"))  # Convert bytes -> dict
+            payload = json.loads(payload_bytes.decode("utf-8"))  
         except json.JSONDecodeError:
             return JSONResponse(status_code=400, content={"error": "Invalid JSON payload"})
     else:
-        payload = None  # No payload
+        payload = None  
 
     try:
         async with httpx.AsyncClient() as client:
@@ -261,7 +259,6 @@ async def delete_event_configs(request):
 
         response.raise_for_status()
 
-        # Handle response content
         if response.text.strip():
             try:
                 return response.json()

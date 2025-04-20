@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from routes.swagger import router as swagger_routes
 from routes.config import router as config_routes
-from routes.uploadCsv import router as upload_csv_router
 
 app = FastAPI()
 
@@ -17,4 +16,3 @@ app.add_middleware(
 
 app.include_router(swagger_routes)
 app.include_router(config_routes)
-app.include_router(upload_csv_router, prefix="/projects") 
