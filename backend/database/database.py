@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, Column, String, DateTime, ForeignKey, Inde
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 import uuid
 from datetime import datetime, timezone, timedelta
-
+from sqlalchemy import UniqueConstraint
 IST = timezone(timedelta(hours=5, minutes=30))
 
 DATABASE_URL = "mysql+pymysql://root:root@127.0.0.1:3307/flipdocs"
@@ -38,7 +38,9 @@ class FDProjectRegistry(Base):
 
     __table_args__ = (
         Index("idx_project_name", "project_name"),
+        UniqueConstraint("team_id", "project_name", name="uq_team_project"),
     )
+
 
 class FDActivityLog(Base):
     __tablename__ = "fd_activity_log"
