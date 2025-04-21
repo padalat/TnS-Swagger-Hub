@@ -31,8 +31,10 @@ const NavBar = () => {
     <div className="flex bg-gradient-to-r from-gray-50 to-blue-50 w-full h-[10vh]">
       <aside className="w-[20%] h-full min-w-[250px] border-r border-gray-200">
       <div
-        className="p-5 border-b border-gray-200 flex items-center "
-        
+        className="p-5 border-b border-gray-200 flex items-center cursor-pointer hover:bg-blue-50 transition-colors"
+        onClick={() => {
+          navigate("/");
+        }}
       >
         <div className="flex-shrink-0 mr-4">
           <img
@@ -41,9 +43,7 @@ const NavBar = () => {
             className="h-9 w-9 rounded-lg shadow-sm"
           />
         </div>
-        <div className='cursor-pointer hover:bg-blue-50 transition-colors' onClick={() => {
-          navigate("/");
-        }}>
+        <div>
           <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-700">FlipDocs</h1>
           <p className="text-xs text-gray-600">API Documentation</p>
         </div>

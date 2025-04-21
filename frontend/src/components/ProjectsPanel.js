@@ -176,102 +176,121 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     <div className="relative w-[25%] bg-gray-50 p-5 shadow-xl min-w-[250px]">
      <h2 className="text-xl font-bold mb-5 text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Projects</h2>
 
-{/* Team Search for Admins */}
-{isAdmin && (
-  <div className="w-full mb-5 relative" ref={teamSearchRef}>
-    <div className="flex gap-2">
-      <input
-        type="text"
-        placeholder="Search teams..."
-        value={teamSearch}
-        onChange={(e) => {
-          const val = e.target.value;
-          setTeamSearch(val);
-          setSelectedTeam("");
-          setFilteredTeams(
-            teams.filter((team) =>
-              team.team_name.toLowerCase().includes(val.toLowerCase())
-            )
-          );
-          setShowDropdown(true);
-        }}
-        onFocus={() => setShowDropdown(true)}
-        className="flex-grow p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-      />
-      {(isAdmin || canWrite) && (
-        <button
-          onClick={() => setAddProject({ isEditing: false })}
-          className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg flex justify-center items-center hover:bg-blue-700 transition-colors shadow-sm"
-        >
-          <span className="text-xl">+</span>
-        </button>
-      )}
-    </div>
-
-    {showDropdown && teamSearch && (
-      <div className="absolute top-full left-0 w-full bg-white border border-gray-200 mt-1 rounded-lg shadow-lg max-h-40 overflow-auto z-10">
-        {filteredTeams.length === 0 ? (
-          <p className="p-3 text-gray-500">No matching teams</p>
-        ) : (
-          filteredTeams.map((team) => (
-            <div
-              key={team.team_id}
-              className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100"
-              onClick={() => {
-                setTeamSearch(team.team_name);
-                setSelectedTeam(team.team_name);
-                setShowDropdown(false);
-                setShowProjects(team.team_name);
+      {/* Team Search for Admins */}
+      {isAdmin && (
+        <div className="w-full mb-5 relative" ref={teamSearchRef}>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select Team
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              placeholder="Search teams..."
+              value={teamSearch}
+              onChange={(e) => {
+                const val = e.target.value;
+                setTeamSearch(val);
+                setSelectedTeam("");
+                setFilteredTeams(
+                  teams.filter((team) =>
+                    team.team_name.toLowerCase().includes(val.toLowerCase())
+                  )
+                );
+                setShowDropdown(true);
               }}
-            >
-              {team.team_name}
-            </div>
-          ))
-        )}
-      </div>
-    )}
-  </div>
-)}
+              onFocus={() => setShowDropdown(true)}
+              className="flex-grow p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+            />
+            {(isAdmin || canWrite) && (
+              <button
+                onClick={() => setAddProject({ isEditing: false })}
+                className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg flex justify-center items-center hover:from-blue-600 hover:to-indigo-700 transition-colors shadow-sm"
+              >
+                <span className="text-xl">+</span>
+              </button>
+            )}
+          </div>
 
-      {/* Project Search */}
-      {(isAdmin && showProjects) || (!isAdmin && decoded?.team_name) ? (
-        <div className="w-full mb-5 flex items-center gap-2 relative" ref={projectSearchRef}>
-          <input
-            type="text"
-            placeholder="Search projects..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setSelectedSearchProject(false);
-            }}
-            onFocus={() => {
-              setSelectedSearchProject(false);
-            }}
-            className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-          />
-         
-          {search && !selectedSearchProject && (
-            <div className="absolute top-full z-[30] left-0 w-full bg-white border border-gray-200 mt-1 rounded-lg shadow-lg max-h-40 overflow-auto">
-              {filteredProjects.length === 0 ? (
-                <p className="p-3 text-gray-500">No matching projects</p>
+          {/* Dropdown for team search results */}
+          {showDropdown && teamSearch && (
+            <div className="absolute top-full left-0 w-full bg-white border border-gray-200 mt-1 rounded-lg shadow-lg max-h-40 overflow-auto z-10">
+              {filteredTeams.length === 0 ? (
+                <p className="p-3 text-gray-500">No matching teams</p>
               ) : (
-                filteredProjects.map((project) => (
+                filteredTeams.map((team) => (
                   <div
-                    key={project.uuid}
-                    className="p-3 hover:bg-blue-50 cursor-pointer  border-b border-gray-100"
+                    key={team.team_id}
+                    className="p-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100"
                     onClick={() => {
-                      setSelectedSearchProject(true);
-                      setSearch(project.projectname);
-                      navigate(`?id=${project.uuid}`);
-                      setSelectedProject(project);
+                      setTeamSearch(team.team_name);
+                      setSelectedTeam(team.team_name);
+                      setShowDropdown(false);
+                      setShowProjects(team.team_name);
                     }}
                   >
-                    {project.projectname}
+                    {team.team_name}
                   </div>
                 ))
               )}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Project Search - Only shown after team selection */}
+      {(isAdmin && showProjects) || (!isAdmin && decoded?.team_name) ? (
+        <div className="w-full mb-5 relative" ref={projectSearchRef}>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <label className="block text-sm font-medium text-gray-700">
+                Search Projects in {showProjects || decoded?.team_name}
+              </label>
+              <div className="bg-blue-100 text-blue-700 text-xs px-2 py-1 rounded-full">
+                Team Selected
+              </div>
+            </div>
+            <input
+              type="text"
+              placeholder="Search projects..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setSelectedSearchProject(false);
+              }}
+              onFocus={() => {
+                setSelectedSearchProject(false);
+              }}
+              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
+            />
+
+            {/* Project search results dropdown */}
+            {search && !selectedSearchProject && (
+              <div className="absolute top-full z-[30] left-0 w-full bg-white border border-gray-200 mt-1 rounded-lg shadow-lg max-h-40 overflow-auto">
+                {filteredProjects.length === 0 ? (
+                  <p className="p-3 text-gray-500">No matching projects</p>
+                ) : (
+                  filteredProjects.map((project) => (
+                    <div
+                      key={project.uuid}
+                      className="p-3 hover:bg-blue-50 cursor-pointer  border-b border-gray-100"
+                      onClick={() => {
+                        setSelectedSearchProject(true);
+                        setSearch(project.projectname);
+                        navigate(`?id=${project.uuid}`);
+                        setSelectedProject(project);
+                      }}
+                    >
+                      {project.projectname}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : isAdmin ? (
+        <div className="bg-gray-100 border border-gray-200 rounded-lg p-4 mb-5 text-center text-gray-500">
+          Select a team to search for projects
         </div>
       ) : null}
 
