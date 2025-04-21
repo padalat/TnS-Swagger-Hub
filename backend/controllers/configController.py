@@ -397,6 +397,11 @@ async def upload_projects(file: UploadFile, user: dict, db: Session):
             if team_name is None or str(team_name).strip() in INVALID_VALUES:
                 team_name = user.get('team_name')
 
+            # NEW: Fetch the team object for this row
+            team = db.query(FDTeam).filter(FDTeam.team_name == team_name).first()
+            if not team:
+                raise HTTPException(status_code=400, detail=f"Row {i}: Invalid team name '{team_name}'")
+
             project_data = {
                 "projectname": str(project_name).strip(),
                 "team_name": team_name
@@ -411,26 +416,28 @@ async def upload_projects(file: UploadFile, user: dict, db: Session):
                 if value is not None:
                     project_data[key] = value
 
-            try:
-                project = ProjectCreate(**project_data)
-            except ValidationError as e:
-                error_messages = []
-                for err in e.errors():
-                    loc = ' → '.join(str(l) for l in err['loc'])
-                    msg = err['msg']
-                    error_messages.append(f"{loc}: {msg}")
-                error_str = "; ".join(error_messages)
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"Row {i}: ProjectCreate → {error_str}"
-                )
-            print(project_data)
-            try:
-                res = await create_new_project(project, user, db)
-                results.append(res)
-            except HTTPException as e:
-                error_message = f"Row {i}: {e.detail}"
-                raise HTTPException(status_code=e.status_code, detail=error_message)
+            # Check if the project already exists for the same team
+            existing_project = db.query(FDProjectRegistry).filter(
+                FDProjectRegistry.team_id == team.team_id,
+                FDProjectRegistry.project_name == project_data["projectname"]
+            ).first()
+
+            if existing_project:
+                # If the project exists, update the existing fields with the new URLs
+                existing_project.production_url = project_data.get('prod_url', existing_project.production_url)
+                existing_project.pre_production_url = project_data.get('pre_prod_url', existing_project.pre_production_url)
+                existing_project.playground_url = project_data.get('pg_url', existing_project.playground_url)
+                db.commit()  # Save the changes to the database
+                results.append(f"Updated: {existing_project.project_name}")
+            else:
+                # If the project does not exist, create a new one
+                try:
+                    project = ProjectCreate(**project_data)
+                    res = await create_new_project(project, user, db)
+                    results.append(f"Created: {res['projectname']}")
+                except HTTPException as e:
+                    error_message = f"Row {i}: {e.detail}"
+                    raise HTTPException(status_code=e.status_code, detail=error_message)
 
         db.commit()
 
@@ -443,6 +450,7 @@ async def upload_projects(file: UploadFile, user: dict, db: Session):
         "processed": len(results),
         "results": results
     }
+
 
 MAX_LOGS_PER_TEAM = 30
 
@@ -457,4 +465,4 @@ def enforce_log_limit(db: Session, team_id: str, max_logs: int = MAX_LOGS_PER_TE
         )
         if oldest_log:
             db.delete(oldest_log)
-            db.flush()  
+            db.flush()

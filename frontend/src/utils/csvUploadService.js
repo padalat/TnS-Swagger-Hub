@@ -7,7 +7,7 @@ export const uploadCsvFile = async (file,token) => {
   console.log(file);
   formData.append("file", file);
   console.log("afetr", formData);
-  const response = await fetch(`${BASE_API}/projects/upload-csv`, {
+  const response = await fetch(`${BASE_API}/upload`, {
     method: "POST",
     headers: {
       "Authorization": `Bearer ${token}`
@@ -17,7 +17,7 @@ export const uploadCsvFile = async (file,token) => {
   const result = await response.json();
   console.log("after Rstl", result);
   if (!response.ok) {
-    throw new Error(result.message || "Upload failed");
+    throw new Error(result.console.error || "Upload failed");
   }
   return result;
 };
