@@ -46,6 +46,14 @@ const Home = () => {
     fetchTeams();
   }, []);
 
+  // Add this new useEffect to reset selectedProject when navigating to root without query params
+  useEffect(() => {
+    // If we're at the root path with no projectId in the URL, reset selectedProject
+    if (!projectId) {
+      setSelectedProject(null);
+    }
+  }, [projectId]);
+
   // useEfonUpdateProjectfect(() => {
   //   if (projectId && projects.length > 0) {
   //     const project = projects.find(p => p.uuid === projectId);
