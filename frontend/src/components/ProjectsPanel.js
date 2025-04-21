@@ -249,19 +249,29 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                 Team Selected
               </div>
             </div>
-            <input
-              type="text"
-              placeholder="Search projects..."
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setSelectedSearchProject(false);
-              }}
-              onFocus={() => {
-                setSelectedSearchProject(false);
-              }}
-              className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-            />
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search projects..."
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setSelectedSearchProject(false);
+                }}
+                onFocus={() => {
+                  setSelectedSearchProject(false);
+                }}
+                className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm pr-10"
+              />
+              {search && (
+                <button 
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+                  onClick={() => setSearch("")}
+                >
+                  <span className="text-xl">×</span>
+                </button>
+              )}
+            </div>
 
             {/* Project search results dropdown */}
             {search && !selectedSearchProject && (
