@@ -16,8 +16,10 @@ const Home = () => {
   const [projects, setProjects] = useState([]);
   const [allTeams,setAllTeams]=useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedTeam , setSelectedTeam] = useState(null);
   const { token, decoded, isAdmin, canRead, canWrite } = useContext(AuthContext);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [cachedProjects, setCachedProjects] = useState({}); // New state to cache projects per team
   const navigate = useNavigate();
 
   const refreshProjects = () => {
@@ -44,18 +46,18 @@ const Home = () => {
     fetchTeams();
   }, []);
 
-  useEffect(() => {
-    if (projectId && projects.length > 0) {
-      const project = projects.find(p => p.uuid === projectId);
-      if (project) {
-        setSelectedProject(project);
-      } else {
-        setSelectedProject(null);
-      }
-    } else {
-      setSelectedProject(null);
-    }
-  }, [projectId, projects]);
+  // useEfonUpdateProjectfect(() => {
+  //   if (projectId && projects.length > 0) {
+  //     const project = projects.find(p => p.uuid === projectId);
+  //     if (project) {
+  //       setSelectedProject(project);
+  //     } else {
+  //       setSelectedProject(null);
+  //     }
+  //   } else {
+  //     setSelectedProject(null);
+  //   }
+  // }, [projectId, projects]);
 
   const handleAddProject = (newProject) => {
     setProjects(prev => {
@@ -101,8 +103,7 @@ const Home = () => {
         pg_url: project.pg_url,
         uuid: project.uuid,
         team_name: project.team_name || "TnS"
-      }
-    };
+      }  };
     setEditProject(project);
     setAddProject(editData);
   };
@@ -123,6 +124,10 @@ const Home = () => {
         refreshKey={refreshKey}
         setSelectedProject={setSelectedProject}
         teams={allTeams}
+        selectedTeam={selectedTeam}
+        setSelectedTeam={setSelectedTeam}
+        cachedProjects={cachedProjects}
+        setCachedProjects={setCachedProjects} 
 
 
       />
@@ -150,6 +155,10 @@ const Home = () => {
               setEditProject(null);
               setAddTeam(false);
             }}
+            selectedTeam={selectedTeam}
+            setSelectedTeam={setSelectedTeam} 
+            cachedProjects={cachedProjects} 
+            setCachedProjects={setCachedProjects}
 
           />
         </div>
