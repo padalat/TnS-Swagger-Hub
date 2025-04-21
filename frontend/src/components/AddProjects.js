@@ -120,7 +120,6 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
     }
     if (isAdmin && (!selectedTeam || !isTeamSelected)) {
       setMessage("Please select a valid team from the list.");
-      console.log(`Handle submit ${selectedTeam} and ${isTeamSelected} `)
       setIsSubmitting(false);
       return;
     }

@@ -52,7 +52,6 @@ const CsvUpload = ({ onClose }) => {
     try {
       // Directly upload the selected file without parsing on frontend
       const result = await uploadCsvFile(selectedFile, token);
-      console.log("Upload result:", result);
       if (result.error) {
         setError(result.error);
         return;
