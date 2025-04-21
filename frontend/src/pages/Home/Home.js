@@ -131,7 +131,7 @@ const Home = () => {
 
 
       />
-      <div className="w-full p-4 flex justify-center items-center">
+      <div className="w-full flex justify-center items-center">
         
         <Swagger selectedProject={selectedProject} />
       </div>
