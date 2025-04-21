@@ -19,12 +19,10 @@ export const AuthProvider = ({ children }) => {
       try {
         const decodedToken = jwtDecode(storedToken);
         
-        console.log(decodedToken.roles);
         const output = convert(decodedToken.roles.flipdocs);
-        console.log(output);
         setDecoded(output);
         setCanRead(output["flipdocs-user-read"]);
-        setCanWrite(output["flipdocs-user-write"]);{console.log("can ",canRead, canWrite, isAdmin)}
+        setCanWrite(output["flipdocs-user-write"]);
         setIsAdmin(output["flipdocs-admin"]);
       } catch (err) {
         console.error("Failed to decode token", err);

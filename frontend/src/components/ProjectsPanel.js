@@ -295,8 +295,6 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
         onClick={() => {
           setShowProjects((prev) => (prev === team.team_name ? null : team.team_name));
           setSelectedTeam(team.team_name);
-          console.log(team.team_name);
-          console.log("ss",selectedTeam);
         }
         }
       >
