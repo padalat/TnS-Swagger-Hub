@@ -46,18 +46,18 @@ const Home = () => {
     fetchTeams();
   }, []);
 
-  useEffect(() => {
-    if (projectId && projects.length > 0) {
-      const project = projects.find(p => p.uuid === projectId);
-      if (project) {
-        setSelectedProject(project);
-      } else {
-        setSelectedProject(null);
-      }
-    } else {
-      setSelectedProject(null);
-    }
-  }, [projectId, projects]);
+  // useEfonUpdateProjectfect(() => {
+  //   if (projectId && projects.length > 0) {
+  //     const project = projects.find(p => p.uuid === projectId);
+  //     if (project) {
+  //       setSelectedProject(project);
+  //     } else {
+  //       setSelectedProject(null);
+  //     }
+  //   } else {
+  //     setSelectedProject(null);
+  //   }
+  // }, [projectId, projects]);
 
   const handleAddProject = (newProject) => {
     setProjects(prev => {

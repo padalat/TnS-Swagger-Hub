@@ -50,11 +50,11 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
       setPreprodUrl("");
       setProdUrl("");
       setPgUrl(""); 
-      console.log("Selected1", selectedTeam)
+      setSelectedTeam(selectedTeam);
       setTeamName(selectedTeam); // pre-fill the team search input
       setIsTeamSelected(true); 
     }
-  }, [addProject, selectedTeam]);
+  }, [addProject]);
 
   const handleAddTeam = async (e) => {
     e.preventDefault();
@@ -120,6 +120,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
     }
     if (isAdmin && (!selectedTeam || !isTeamSelected)) {
       setMessage("Please select a valid team from the list.");
+      console.log(`Handle submit ${selectedTeam} and ${isTeamSelected} `)
       setIsSubmitting(false);
       return;
     }
@@ -179,9 +180,9 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
         }
 
         // Call the update handler passed from ProjectsPanel
-        if (typeof onUpdateProject === "function") {
-          onUpdateProject(data);
-        }
+        // if (typeof onUpdateProject === "function") {
+        //   onUpdateProject(data);
+        // }
 
         setMessage("Project updated successfully!");
       } else {
