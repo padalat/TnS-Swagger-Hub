@@ -259,7 +259,7 @@ async def fetch_recent_activity_logs(k: int, user):
         try:
             team = db.query(FDTeam).filter(FDTeam.team_name == user.get("team_name")).first()
             if not team:
-                raise HTTPException(status_code=400, detail="Invalid team name")
+                return []
             activities = db.query(FDActivityLog)\
                            .filter(FDActivityLog.team_id == team.team_id)\
                            .order_by(FDActivityLog.log_timestamp.desc())\
@@ -427,6 +427,14 @@ async def upload_projects(file: UploadFile, user: dict, db: Session):
                 existing_project.production_url = project_data.get('prod_url', existing_project.production_url)
                 existing_project.pre_production_url = project_data.get('pre_prod_url', existing_project.pre_production_url)
                 existing_project.playground_url = project_data.get('pg_url', existing_project.playground_url)
+                enforce_log_limit(db, team.team_id)
+                activity = FDActivityLog(
+                    log_uuid=str(uuid.uuid4()),
+                    log_message=f"Project '{existing_project.project_name}' updated",
+                    log_timestamp=datetime.now(IST),
+                    team_id=team.team_id
+                )
+                db.add(activity)
                 db.commit()  # Save the changes to the database
                 results.append(f"Updated: {existing_project.project_name}")
             else:
@@ -455,14 +463,26 @@ async def upload_projects(file: UploadFile, user: dict, db: Session):
 MAX_LOGS_PER_TEAM = 30
 
 def enforce_log_limit(db: Session, team_id: str, max_logs: int = MAX_LOGS_PER_TEAM):
+    # Count the existing logs for this team
     count = db.query(FDActivityLog).filter(FDActivityLog.team_id == team_id).count()
-    if count >= max_logs:
-        oldest_log = (
+    
+    # Calculate how many logs need to be removed to stay under the limit
+    # We need to remove enough logs to leave room for the new log being added
+    logs_to_remove = max(0, count - max_logs + 1)
+    
+    if logs_to_remove > 0:
+        # Fetch the oldest logs that need removal
+        oldest_logs = (
             db.query(FDActivityLog)
-              .filter(FDActivityLog.team_id == team_id)
-              .order_by(FDActivityLog.log_timestamp.asc())
-              .first()
+            .filter(FDActivityLog.team_id == team_id)
+            .order_by(FDActivityLog.log_timestamp.asc())
+            .limit(logs_to_remove)
+            .all()
         )
-        if oldest_log:
-            db.delete(oldest_log)
-            db.flush()
+        
+        # Loop through and delete each one
+        for log in oldest_logs:
+            db.delete(log)
+            
+        # Flush to ensure deletions are processed
+        db.flush()

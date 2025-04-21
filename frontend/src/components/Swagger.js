@@ -148,34 +148,36 @@ const SwaggerHub = ({ selectedProject }) => {
   }
 
   return (
-    <div className="h-full w-full  " style={{ padding: "20px" }}>
-      <div className="flex flex-wrap items-center mb-4 gap-4">
-        <div>
-          <span className="font-medium">Project:</span>{" "}
-          <span className="text-blue-600">{selectedProject.projectname}</span>
+    <div className="h-full w-full bg-gray-50 rounded-lg" style={{ padding: "24px" }}>
+      <div className="flex flex-wrap items-center mb-6 gap-4 bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+        <div className="flex items-center">
+          <span className="font-semibold text-gray-700 mr-2">Project:</span>
+          <span className="text-blue-600 font-bold">{selectedProject.projectname}</span>
           {selectedProject.team_name && (
-            <span className="text-gray-500 ml-2">({selectedProject.team_name})</span>
+            <span className="text-gray-500 ml-2 bg-gray-100 px-2 py-1 rounded-full text-sm">
+              {selectedProject.team_name}
+            </span>
           )}
         </div>
 
         {availableEnvs.length > 0 && (
-          <div className="relative inline-block" id="env-dropdown">
+          <div className="relative inline-block ml-auto" id="env-dropdown">
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="px-4 py-2 border border-gray-300 rounded bg-white shadow hover:bg-gray-100 flex items-center"
+              className="px-5 py-2 border border-blue-200 rounded-lg bg-white shadow-sm hover:bg-blue-50 flex items-center transition-colors"
             >
-              <span className="mr-1">Environment:</span>
-              <span className="font-medium">{selectedEnv?.name.toUpperCase()}</span>
-              <span className="ml-2">{dropdownOpen ? "▲" : "▼"}</span>
+              <span className="mr-1 text-gray-600">Environment:</span>
+              <span className="font-medium text-blue-700">{selectedEnv?.name.toUpperCase()}</span>
+              <span className="ml-2 text-blue-500">{dropdownOpen ? "▲" : "▼"}</span>
             </button>
 
             {dropdownOpen && (
-              <ul className="absolute z-10 mt-1 bg-white border border-gray-300 rounded shadow w-full">
+              <ul className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg w-full overflow-hidden">
                 {availableEnvs.map((env) => (
                   <li
                     key={env.name}
-                    className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
-                      env.name === selectedEnv?.name ? "bg-gray-200 font-bold" : ""
+                    className={`px-5 py-3 cursor-pointer hover:bg-blue-50 transition-colors ${
+                      env.name === selectedEnv?.name ? "bg-blue-100 font-bold text-blue-700" : "text-gray-700"
                     }`}
                     onClick={() => handleEnvChange(env)}
                   >
@@ -188,24 +190,32 @@ const SwaggerHub = ({ selectedProject }) => {
         )}
 
         {availableEnvs.length === 0 && (
-          <div className="text-red-500">No valid environment URLs found for this project</div>
+          <div className="text-red-500 bg-red-50 px-4 py-2 rounded-lg border border-red-100 ml-auto">
+            No valid environment URLs found
+          </div>
         )}
       </div>
 
-      {error ? (
-        <ErrorMessage error={error} />
-      ) : loading ? (
-        <Loader />
-      ) : swaggerSpec ? (
-        <SwaggerUI 
-          spec={swaggerSpec} 
-          requestInterceptor={enhancedRequestInterceptor}
-        />
-      ) : selectedEnv ? (
-        <Loader />
-      ) : (
-        <WelcomeMessage />
-      )}
+      <div className="border border-gray-200 rounded-lg bg-white shadow-sm overflow-hidden">
+        {error ? (
+          <ErrorMessage error={error} />
+        ) : loading ? (
+          <div className="py-10">
+            <Loader />
+          </div>
+        ) : swaggerSpec ? (
+          <SwaggerUI 
+            spec={swaggerSpec} 
+            requestInterceptor={enhancedRequestInterceptor}
+          />
+        ) : selectedEnv ? (
+          <div className="py-10">
+            <Loader />
+          </div>
+        ) : (
+          <WelcomeMessage />
+        )}
+      </div>
     </div>
   );
 };

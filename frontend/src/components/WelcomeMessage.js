@@ -8,7 +8,7 @@ import { FiActivity, FiPackage, FiCheckCircle, FiUsers, FiGrid } from "react-ico
 
 const WelcomeMessage = () => {
   const [activities, setActivities] = useState([]);
-  const [stats, setStats] = useState({ totalProjects: 60, apiCalls: 1500, registeredProjects: 0 });
+  const [stats, setStats] = useState({ totalProjects: 0 });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -18,7 +18,7 @@ const WelcomeMessage = () => {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${BASE_API}/activities/recent?k=5`,{
+      fetch(`${BASE_API}/activities/recent?k=4`,{
         "headers": {
           "Authorization": `Bearer ${token}`
         }     
@@ -38,9 +38,7 @@ const WelcomeMessage = () => {
       .then(([activitiesData, statsData]) => {
         setActivities(activitiesData);
         setStats({
-          totalProjects: 60,
-          apiCalls: 1500,
-          registeredProjects: statsData.registered_projects
+          totalProjects: statsData.registered_projects
         });
         setError(null);
       })

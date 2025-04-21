@@ -113,7 +113,7 @@ const Home = () => {
   }
 
   return (
-    <div className="flex min-h-[95vh]">
+    <div className="flex min-h-[91vh]">
       <ProjectsPanel
         setAddProject={setAddProject}
         projects={projects}

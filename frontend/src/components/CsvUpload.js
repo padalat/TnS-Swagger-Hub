@@ -69,42 +69,76 @@ const CsvUpload = ({ onClose }) => {
 
   return (
     <div 
-      className="bg-white shadow-inner rounded-lg p-6 relative border border-gray-200"
+      className="bg-gradient-to-b from-white to-blue-50 shadow-lg rounded-xl p-8 relative border border-blue-100"
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
       {onClose && (
         <button 
           onClick={onClose} 
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-2xl font-bold"
+          className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold transition-colors"
           aria-label="Close CSV Upload"
         >
           &times;
         </button>
       )}
-      <h3 className="text-xl font-semibold mb-4 text-gray-700">Upload Project CSV</h3>
-      <div className="mb-4">
-        <label htmlFor="csv-file-input" className="block text-sm font-medium text-gray-700 mb-2">
-          Drag and drop file here or click to select CSV
-        </label>
+      
+      <div className="mb-6">
+        <div 
+          className="border-2 border-dashed border-blue-300 rounded-lg p-8 bg-blue-50 text-center cursor-pointer hover:bg-blue-100 transition-colors mb-4"
+          onClick={() => document.getElementById('csv-file-input').click()}
+        >
+          <div className="text-blue-600 mb-2 text-lg">
+            {selectedFile ? `Selected: ${selectedFile.name}` : 'Drag and drop your CSV file here'}
+          </div>
+          <p className="text-sm text-gray-500">
+            or click to browse files
+          </p>
+        </div>
+        
         <input
           id="csv-file-input"
           type="file"
           accept=".csv"
           onChange={handleFileChange}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+          className="hidden"
         />
       </div>
-      <button 
-        onClick={handleUpload} 
-        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600" 
-        disabled={uploading}
-      >
-        {uploading ? "Uploading..." : "Upload"}
-      </button>
-      {uploading && <Loader />}
-      {message && <p className="mt-4 text-green-600">{message}</p>}
-      {error && <p className="mt-4 text-red-600">{error}</p>}
+      
+      <div className="flex justify-between items-center">
+        <button 
+          onClick={onClose} 
+          className="px-5 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium border border-gray-200 shadow-sm"
+        >
+          Cancel
+        </button>
+        
+        <button 
+          onClick={handleUpload} 
+          className="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 font-medium shadow-md transition-all" 
+          disabled={uploading || !selectedFile}
+        >
+          {uploading ? "Uploading..." : "Upload File"}
+        </button>
+      </div>
+      
+      {uploading && (
+        <div className="mt-6 flex justify-center">
+          <Loader />
+        </div>
+      )}
+      
+      {message && (
+        <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
+          {message}
+        </div>
+      )}
+      
+      {error && (
+        <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          {error}
+        </div>
+      )}
     </div>
   );
 };
