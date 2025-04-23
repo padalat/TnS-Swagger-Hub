@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import Loader from "./Loader"; // Import the Loader component
+import Loader from "./Loader";
 import ErrorMessage from "./ErrorMessage";
 import { BASE_API } from "../utils/baseApi";
 import { FiMoreVertical } from "react-icons/fi";
@@ -8,7 +8,7 @@ import { MdDeleteOutline } from "react-icons/md";
 import { CiEdit } from "react-icons/ci";
 import { AuthContext } from '../contexts/AuthContext';
 
-const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProject, setEditProject, refreshKey, teams ,selectedProject, selectedTeam, setSelectedTeam, cachedProjects, setCachedProjects}) => {
+const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProject, setEditProject, refreshKey, teams, selectedProject, selectedTeam, setSelectedTeam, cachedProjects, setCachedProjects }) => {
   const [search, setSearch] = useState("");
   const [teamSearch, setTeamSearch] = useState("");
   const [filteredTeams, setFilteredTeams] = useState([]);
@@ -18,10 +18,10 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
   const [deletePrompt, setDeletePrompt] = useState(null);
   const [confirmText, setConfirmText] = useState("");
   const [activeMenu, setActiveMenu] = useState(null);
-  // const [selectedTeam, setSelectedTeam] = useState();
+
   const [selectedSearchProject, setSelectedSearchProject] = useState(false);
-  const [showDropdown, setShowDropdown] = useState(false); 
-  const [loadingProjects, setLoadingProjects] = useState(false); // State for loading projects
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [loadingProjects, setLoadingProjects] = useState(false);
 
   const menuRef = useRef(null);
   const teamSearchRef = useRef(null);
@@ -37,14 +37,10 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     }
   }, [teams, decoded, isAdmin]);
 
-  // // UseMemo to cache projects for current team
-  // const memoizedProjects = useMemo(() => {
-  //   return cachedProjects[showProjects];
-  // }, [cachedProjects, showProjects]);
 
   useEffect(() => {
     if (showProjects === null) return;
-    // Check if cache has an entry (even if an empty array)
+
     if (Object.prototype.hasOwnProperty.call(cachedProjects, showProjects)) {
       setProjects(cachedProjects[showProjects]);
       return;
@@ -63,7 +59,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
         const data = await res.json();
         const sorted = data.sort((a, b) => a.projectname.localeCompare(b.projectname));
         setProjects(sorted);
-        // Cache the projects even if sorted is empty
+
         setCachedProjects(prev => ({ ...prev, [showProjects]: sorted }));
       } catch (err) {
         setError(err.message);
@@ -139,19 +135,19 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 
       if (!res.ok) throw new Error("Failed to delete project");
 
-      // setProjects((prev) => prev.filter((p) => p.uuid !== deletePrompt.uuid));
+
       setProjects((prev) => {
         const updated = prev.filter((p) => p.uuid !== deletePrompt.uuid);
-  
+
         setCachedProjects((cache) => ({
           ...cache,
           [showProjects]: updated
         }));
-  
+
         return updated;
       });
-  
-      
+
+
       setDeletePrompt(null);
       setConfirmText("");
       navigate("/");
@@ -168,13 +164,13 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
 
   const filteredProjects = search
     ? projects.filter((p) =>
-        p.projectname.toLowerCase().includes(search.toLowerCase())
-      )
+      p.projectname.toLowerCase().includes(search.toLowerCase())
+    )
     : [];
 
   return (
     <div className="relative w-[25%] bg-gray-50 p-5 shadow-xl min-w-[250px]">
-     <h2 className="text-xl font-bold mb-5 text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Projects</h2>
+      <h2 className="text-xl font-bold mb-5 text-center bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Projects</h2>
 
       {/* Team Search for Admins */}
       {isAdmin && (
@@ -264,7 +260,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                 className="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm pr-10"
               />
               {search && (
-                <button 
+                <button
                   className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
                   onClick={() => setSearch("")}
                   aria-label="Clear search"
@@ -273,13 +269,13 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                 </button>
               )}
               {(!isAdmin && canWrite) && (
-              <button
-                onClick={() => setAddProject({ isEditing: false })}
-                className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg flex justify-center items-center hover:from-blue-600 hover:to-indigo-700 transition-colors shadow-sm"
-              >
-                <span className="text-xl">+</span>
-              </button>
-            )}
+                <button
+                  onClick={() => setAddProject({ isEditing: false })}
+                  className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg flex justify-center items-center hover:from-blue-600 hover:to-indigo-700 transition-colors shadow-sm"
+                >
+                  <span className="text-xl">+</span>
+                </button>
+              )}
             </div>
 
             {/* Project search results dropdown */}
@@ -343,9 +339,8 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                         projects.map((project) => (
                           <li
                             key={project.uuid}
-                            className={`p-3 mb-2 relative flex justify-between items-center border ${project?.uuid === currentId ? "border-blue-300 bg-blue-50" : "border-gray-200"} rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-50 ${
-                              project?.uuid === currentId ? "z-[20]" : "z-0"
-                            }`}
+                            className={`p-3 mb-2 relative flex justify-between items-center border ${project?.uuid === currentId ? "border-blue-300 bg-blue-50" : "border-gray-200"} rounded-lg shadow-md cursor-pointer transition-all duration-200 hover:bg-blue-50 ${project?.uuid === currentId ? "z-[20]" : "z-0"
+                              }`}
                             onClick={() => {
                               navigate(`?id=${project.uuid}`);
                               setSelectedProject(project);
@@ -357,9 +352,8 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                             {(isAdmin || canWrite) && (
                               <div className="relative">
                                 <button
-                                  className={`p-2 rounded-md hover:bg-blue-200 transition-all ${
-                                    currentId === project.uuid ? "block" : "hidden"
-                                  }`}
+                                  className={`p-2 rounded-md hover:bg-blue-200 transition-all ${currentId === project.uuid ? "block" : "hidden"
+                                    }`}
                                   onClick={(e) => handleMenuClick(e, project.uuid)}
                                 >
                                   <FiMoreVertical size={20} className="text-blue-600" />
