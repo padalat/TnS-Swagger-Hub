@@ -5,6 +5,7 @@ cffi==1.17.1
 charset-normalizer==3.4.1
 click==8.1.8
 cryptography==44.0.2
+dotenv==0.9.9
 exceptiongroup==1.2.2
 fastapi==0.115.12
 h11==0.14.0
@@ -19,6 +20,7 @@ pydantic-core==2.27.2
 PyJWT==2.8.0
 PyMySQL==1.1.1
 python-dateutil==2.9.0.post0
+python-dotenv==1.1.0
 python-multipart==0.0.20
 pytz==2025.2
 requests==2.32.3
