@@ -37,10 +37,10 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
     }
   }, [teams, decoded, isAdmin]);
 
-  // UseMemo to cache projects for current team
-  const memoizedProjects = useMemo(() => {
-    return cachedProjects[showProjects];
-  }, [cachedProjects, showProjects]);
+  // // UseMemo to cache projects for current team
+  // const memoizedProjects = useMemo(() => {
+  //   return cachedProjects[showProjects];
+  // }, [cachedProjects, showProjects]);
 
   useEffect(() => {
     if (showProjects === null) return;
@@ -201,7 +201,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
               onFocus={() => setShowDropdown(true)}
               className="flex-grow p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
             />
-            {(isAdmin || canWrite) && (
+            {(isAdmin) && (
               <button
                 onClick={() => setAddProject({ isEditing: false })}
                 className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg flex justify-center items-center hover:from-blue-600 hover:to-indigo-700 transition-colors shadow-sm"
@@ -249,7 +249,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                 Team Selected
               </div>
             </div>
-            <div className="relative">
+            <div className="flex items-center gap-2">
               <input
                 type="text"
                 placeholder="Search projects..."
@@ -271,6 +271,14 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                   <span className="text-xl">×</span>
                 </button>
               )}
+              {(!isAdmin && canWrite) && (
+              <button
+                onClick={() => setAddProject({ isEditing: false })}
+                className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg flex justify-center items-center hover:from-blue-600 hover:to-indigo-700 transition-colors shadow-sm"
+              >
+                <span className="text-xl">+</span>
+              </button>
+            )}
             </div>
 
             {/* Project search results dropdown */}
