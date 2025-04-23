@@ -38,7 +38,7 @@ async def get_project_swagger_by_uuid_and_env(uuid: str, env: str,user):
     
     if not user.get("flipdocs-admin"):
         team = db.query(FDTeam).filter(FDTeam.team_id == project.team_id).first()
-        if not team or team.team_name != user.get("team_name"):
+        if not team or team.team_name.lower() != user.get("team_name", "").lower():
                 raise HTTPException(status_code=400, detail="Invalid team name")
     
     
