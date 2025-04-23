@@ -2,14 +2,13 @@ import requests
 from database.database import get_db, FDProjectRegistry, FDActivityLog, FDTeam, IST
 from sqlalchemy.exc import SQLAlchemyError
 import requests.exceptions
-from fastapi import HTTPException, File, UploadFile
+from fastapi import HTTPException, UploadFile
 from datetime import datetime
 import uuid
 import pandas as pd
 from io import BytesIO, StringIO
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from pydantic import ValidationError
 
 
 INVALID_VALUES = {"", "None", "null", "NULL", "none", "N/A", "n/a", "NaN", None, float('nan')}
@@ -29,65 +28,77 @@ def ensure_scheme(url):
 
 
 async def create_new_project(body, user: dict, db: Session) -> dict:
-    if not (getattr(body, 'prod_url', None) or getattr(body, 'pre_prod_url', None) or getattr(body, 'pg_url', None)):
-        raise HTTPException(status_code=400, detail="At least one URL must be provided")
+    try:
+        if not (getattr(body, 'prod_url', None) or getattr(body, 'pre_prod_url', None) or getattr(body, 'pg_url', None)):
+            raise HTTPException(status_code=400, detail="At least one URL must be provided")
 
-    for key, label in [('prod_url','prod_url'), ('pre_prod_url','pre_prod_url'), ('pg_url','pg_url')]:
-        url = getattr(body, key, None)
-        url = str(url).strip() if url is not None else ""
-        print(url)
-        if pd.isna(url) or str(url).strip() in INVALID_VALUES:
-            setattr(body, key, None)
-            print(f"{label} is considered empty")
-        elif url:
-            try:
-                safe_url = ensure_scheme(url)
-                resp = requests.get(safe_url, verify=False)
-                resp.raise_for_status()
-                resp.json()
-            except requests.exceptions.RequestException:
-                raise HTTPException(status_code=400, detail=f"Invalid {label}")
-            except ValueError:
-                raise HTTPException(status_code=400, detail=f"Invalid JSON response from {label}")
+        for key, label in [('prod_url','prod_url'), ('pre_prod_url','pre_prod_url'), ('pg_url','pg_url')]:
+            url = getattr(body, key, None)
+            url = str(url).strip() if url is not None else ""
+            print(url)
+            if pd.isna(url) or str(url).strip() in INVALID_VALUES:
+                setattr(body, key, None)
+                print(f"{label} is considered empty")
+            elif url:
+                try:
+                    safe_url = ensure_scheme(url)
+                    resp = requests.get(safe_url, verify=False)
+                    resp.raise_for_status()
+                    resp.json()
+                except requests.exceptions.RequestException:
+                    raise HTTPException(status_code=400, detail=f"Invalid {label}")
+                except ValueError:
+                    raise HTTPException(status_code=400, detail=f"Invalid JSON response from {label}")
 
-    if user.get('flipdocs-admin'):
-        team_name =  body.team_name
-    else:
-        team_name = user.get('team_name')
+        if user.get('flipdocs-admin'):
+            team_name =  body.team_name
+        else:
+            team_name = user.get('team_name')
 
-    team = db.query(FDTeam).filter(FDTeam.team_name == team_name).first()
-    if not team:
-        raise HTTPException(status_code=400, detail=f"Invalid team name {team_name}")
+        team = db.query(FDTeam).filter(FDTeam.team_name == team_name).first()
+        if not team:
+            raise HTTPException(status_code=400, detail=f"Invalid team name {team_name}")
 
-    enforce_log_limit(db, team.team_id)
+        enforce_log_limit(db, team.team_id)
 
-    project = FDProjectRegistry(
-        project_uuid=str(uuid.uuid4()),
-        project_name=body.projectname,
-        team_id=team.team_id,
-        production_url=body.prod_url,
-        pre_production_url=body.pre_prod_url,
-        playground_url=body.pg_url
-    )
-    db.add(project)
-    db.flush()
+        project = FDProjectRegistry(
+            project_uuid=str(uuid.uuid4()),
+            project_name=body.projectname,
+            team_id=team.team_id,
+            production_url=body.prod_url,
+            pre_production_url=body.pre_prod_url,
+            playground_url=body.pg_url
+        )
+        db.add(project)
+        db.flush()
 
-    activity = FDActivityLog(
-        log_uuid=str(uuid.uuid4()),
-        log_message=f"Project '{body.projectname}' added",
-        log_timestamp=datetime.now(IST),
-        team_id=team.team_id
-    )
-    db.add(activity)
+        activity = FDActivityLog(
+            log_uuid=str(uuid.uuid4()),
+            log_message=f"Project '{body.projectname}' added",
+            log_timestamp=datetime.now(IST),
+            team_id=team.team_id
+        )
+        db.add(activity)
 
-    return {
-        "uuid": project.project_uuid,
-        "projectname": project.project_name,
-        "team_name": team.team_name,
-        "prod_url": project.production_url,
-        "pre_prod_url": project.pre_production_url,
-        "pg_url": project.playground_url
-    }
+        return {
+            "uuid": project.project_uuid,
+            "projectname": project.project_name,
+            "team_name": team.team_name,
+            "prod_url": project.production_url,
+            "pre_prod_url": project.pre_production_url,
+            "pg_url": project.playground_url
+        }
+    except SQLAlchemyError as e:
+        db.rollback()
+        error_msg = str(e.__cause__) if e.__cause__ else str(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {error_msg}"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Something went wrong...")
 
 
 async def retrieve_team_projects(team_name,user):
@@ -102,11 +113,7 @@ async def retrieve_team_projects(team_name,user):
             raise HTTPException(status_code=400, detail="Invalid team name") 
             
         projects = db.query(FDProjectRegistry).filter(FDProjectRegistry.team_id == team.team_id).all()
-    except SQLAlchemyError as e:
-        print(e)
-        raise HTTPException(status_code=500, detail="Something went wrong...")
-        
-    return [
+        return [
         {
             "uuid": p.project_uuid,
             "projectname": p.project_name,
@@ -116,6 +123,18 @@ async def retrieve_team_projects(team_name,user):
             "pg_url": p.playground_url
         } for p in projects
     ]
+    except SQLAlchemyError as e:
+        error_msg = str(e.__cause__) if e.__cause__ else str(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {error_msg}"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Something went wrong...")
+        
+    
 
 
 async def update_existing_project(project_uuid: str, body,user):
@@ -177,9 +196,7 @@ async def update_existing_project(project_uuid: str, body,user):
         
         if not existing_project:
             raise HTTPException(status_code=404, detail="Project not found")
-            
-        
-            
+              
         existing_project.project_name = body.projectname
         existing_project.team_id = team.team_id
         existing_project.production_url = prod_url
@@ -196,20 +213,27 @@ async def update_existing_project(project_uuid: str, body,user):
         )
         db.add(activity)
         db.commit()
-        
+        return {
+            "uuid": existing_project.project_uuid,
+            "projectname": existing_project.project_name,
+            "team_name": team.team_name,
+            "prod_url": existing_project.production_url,
+            "pre_prod_url": existing_project.pre_production_url,
+            "pg_url": existing_project.playground_url
+        }
     except SQLAlchemyError as e:
         db.rollback()
-        print(e)
+        error_msg = str(e.__cause__) if e.__cause__ else str(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {error_msg}"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=500, detail="Something went wrong...")
         
-    return {
-        "uuid": existing_project.project_uuid,
-        "projectname": existing_project.project_name,
-        "team_name": team.team_name,
-        "prod_url": existing_project.production_url,
-        "pre_prod_url": existing_project.pre_production_url,
-        "pg_url": existing_project.playground_url
-    }
+    
 
 
 async def delete_existing_project(project_uuid: str,user):
@@ -242,21 +266,30 @@ async def delete_existing_project(project_uuid: str,user):
         )
         db.add(activity)
         db.commit()
+        return {"message": "Project deleted successfully"}
         
     except SQLAlchemyError as e:
         db.rollback()
-        print(e)
+        error_msg = str(e.__cause__) if e.__cause__ else str(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {error_msg}"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
         raise HTTPException(status_code=500, detail="Something went wrong...")
         
-    return {"message": "Project deleted successfully"}
+    
 
 
 async def fetch_recent_activity_logs(k: int, user):
-    db = next(get_db())
-    if user.get("flipdocs-admin"):
-        activities = db.query(FDActivityLog).order_by(FDActivityLog.log_timestamp.desc()).limit(k).all()
-    else:
-        try:
+    try:
+        db = next(get_db())
+        if user.get("flipdocs-admin"):
+            activities = db.query(FDActivityLog).order_by(FDActivityLog.log_timestamp.desc()).limit(k).all()
+        else:
+            
             team = db.query(FDTeam).filter(FDTeam.team_name == user.get("team_name")).first()
             if not team:
                 return []
@@ -264,45 +297,55 @@ async def fetch_recent_activity_logs(k: int, user):
                            .filter(FDActivityLog.team_id == team.team_id)\
                            .order_by(FDActivityLog.log_timestamp.desc())\
                            .limit(k).all()
-        except SQLAlchemyError as e:
-            print(e)
-            raise HTTPException(status_code=500, detail="Something went wrong...")
-    return [
-        {
-            "uuid": activity.log_uuid,
-            "message": activity.log_message,
-            "time":activity.log_timestamp
-        } for activity in activities
-    ]
+        return [
+                {
+                    "uuid": activity.log_uuid,
+                    "message": activity.log_message,
+                    "time":activity.log_timestamp
+                } for activity in activities
+            ]
+    except SQLAlchemyError as e:
+        db.rollback()
+        error_msg = str(e.__cause__) if e.__cause__ else str(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {error_msg}"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Something went wrong...")
+    
 
 
 async def fetch_project_statistics(user):
-    if user.get("flipdocs-admin"):
-        try:
+    try:
+        if user.get("flipdocs-admin"):
             db = next(get_db())
             project_count = db.query(FDProjectRegistry).count()
-        except SQLAlchemyError as e:
-            print(e)
-            raise HTTPException(status_code=500, detail="Something went wrong...")
-            
-        return {
-            "registered_projects": project_count
-        }
-    else:
-        try:
+            return {
+                "registered_projects": project_count
+            }
+        else:
             db = next(get_db())
             team = db.query(FDTeam).filter(FDTeam.team_name == user.get("team_name")).first()
             if not team:
                 raise HTTPException(status_code=400, detail="Invalid team name")
             project_count = db.query(FDProjectRegistry).filter(FDProjectRegistry.team_id == team.team_id).count()
-        except SQLAlchemyError as e:
-            print(e)
-            raise HTTPException(status_code=500, detail="Something went wrong...")
-            
-        return {
-            "registered_projects": project_count
-        }
-
+            return {
+                "registered_projects": project_count
+            }
+    except SQLAlchemyError as e:
+        error_msg = str(e.__cause__) if e.__cause__ else str(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {error_msg}"
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Something went wrong...")
+    
 
 async def create_new_team(team):
     try:
@@ -330,10 +373,18 @@ async def create_new_team(team):
             "team_id": new_team.team_id,
             "team_name": new_team.team_name
         }
-        
     except SQLAlchemyError as e:
         db.rollback()
-        print(e)
+        error_msg = str(e.__cause__) if e.__cause__ else str(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {error_msg}"
+        )
+    except HTTPException:
+        db.rollback()
+        raise
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail="Something went wrong when creating the team")
 
 
@@ -353,9 +404,14 @@ async def get_all_teams(user):
         if not team:
             raise HTTPException(status_code=404, detail=f"Team '{team_name}' not found")
         
-        return {"teams": [{"team_id":team.team_id,"team_name":team.team_name}]}
-        
+        return {"teams": [{"team_id":team.team_id,"team_name":team.team_name}]}  
     except SQLAlchemyError as e:
+        error_msg = str(e.__cause__) if e.__cause__ else str(e)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Database error: {error_msg}"
+        )
+    except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="Something went wrong retrieving team data")
     
@@ -365,11 +421,12 @@ def sanitize_url(url):
         return None
     return url
 
+
+
 async def upload_projects(file: UploadFile, user: dict, db: Session):
     filename = file.filename
     content = await file.read()
 
-    # Load file
     try:
         if filename.lower().endswith('.csv'):
             df = pd.read_csv(StringIO(content.decode('utf-8')))
@@ -397,7 +454,6 @@ async def upload_projects(file: UploadFile, user: dict, db: Session):
             if team_name is None or str(team_name).strip() in INVALID_VALUES:
                 team_name = user.get('team_name')
 
-            # NEW: Fetch the team object for this row
             team = db.query(FDTeam).filter(FDTeam.team_name == team_name).first()
             if not team:
                 raise HTTPException(status_code=400, detail=f"Row {i}: Invalid team name '{team_name}'")
@@ -416,62 +472,54 @@ async def upload_projects(file: UploadFile, user: dict, db: Session):
                 if value is not None:
                     project_data[key] = value
 
-            # Check if the project already exists for the same team
+            try:
+                project = ProjectCreate(**project_data)
+            except HTTPException as e:
+                raise HTTPException(status_code=e.status_code, detail=f"Row {i}: {e.detail}")
+
             existing_project = db.query(FDProjectRegistry).filter(
                 FDProjectRegistry.team_id == team.team_id,
                 FDProjectRegistry.project_name == project_data["projectname"]
             ).first()
 
             if existing_project:
-                # If the project exists, update the existing fields with the new URLs
-                existing_project.production_url = project_data.get('prod_url', existing_project.production_url)
-                existing_project.pre_production_url = project_data.get('pre_prod_url', existing_project.pre_production_url)
-                existing_project.playground_url = project_data.get('pg_url', existing_project.playground_url)
-                enforce_log_limit(db, team.team_id)
-                activity = FDActivityLog(
-                    log_uuid=str(uuid.uuid4()),
-                    log_message=f"Project '{existing_project.project_name}' updated",
-                    log_timestamp=datetime.now(IST),
-                    team_id=team.team_id
-                )
-                db.add(activity)
-                db.commit()  # Save the changes to the database
-                results.append(f"Updated: {existing_project.project_name}")
-            else:
-                # If the project does not exist, create a new one
                 try:
-                    project = ProjectCreate(**project_data)
+                    res = await update_existing_project(existing_project.project_uuid, project, user)
+                    results.append(f"Updated: {existing_project.project_name}")
+                except HTTPException as e:
+                    raise HTTPException(status_code=e.status_code, detail=f"Row {i}: {e.detail}")
+            else:
+                try:
                     res = await create_new_project(project, user, db)
                     results.append(f"Created: {res['projectname']}")
                 except HTTPException as e:
-                    error_message = f"Row {i}: {e.detail}"
-                    raise HTTPException(status_code=e.status_code, detail=error_message)
+                    raise HTTPException(status_code=e.status_code, detail=f"Row {i}: {e.detail}")
 
         db.commit()
+        return {
+            "filename": filename,
+            "processed": len(results),
+            "results": results
+        }
 
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=f"{e}")
 
-    return {
-        "filename": filename,
-        "processed": len(results),
-        "results": results
-    }
+    
 
 
 MAX_LOGS_PER_TEAM = 30
 
 def enforce_log_limit(db: Session, team_id: str, max_logs: int = MAX_LOGS_PER_TEAM):
-    # Count the existing logs for this team
     count = db.query(FDActivityLog).filter(FDActivityLog.team_id == team_id).count()
-    
-    # Calculate how many logs need to be removed to stay under the limit
-    # We need to remove enough logs to leave room for the new log being added
+
     logs_to_remove = max(0, count - max_logs + 1)
     
     if logs_to_remove > 0:
-        # Fetch the oldest logs that need removal
         oldest_logs = (
             db.query(FDActivityLog)
             .filter(FDActivityLog.team_id == team_id)
@@ -480,9 +528,7 @@ def enforce_log_limit(db: Session, team_id: str, max_logs: int = MAX_LOGS_PER_TE
             .all()
         )
         
-        # Loop through and delete each one
         for log in oldest_logs:
             db.delete(log)
             
-        # Flush to ensure deletions are processed
         db.flush()
