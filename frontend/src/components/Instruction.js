@@ -34,7 +34,7 @@ const Instruction = ({ onClose }) => {
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-black hover:text-gray-300 px-2 transition duration-200 text-2xl"
+          className="absolute top-2 right-2 text-black font-bold hover:text-gray-500 px-2 transition duration-200 text-2xl"
         >
           ×
         </button>

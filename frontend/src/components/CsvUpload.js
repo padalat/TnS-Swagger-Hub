@@ -16,6 +16,13 @@ const CsvUpload = ({ onClose }) => {
   // The allowed team for non-admin users
   const userTeam = decoded?.["team_name"];
 
+  const truncateFileName = (name, maxLength = 20) => {
+    if (name.length > maxLength) {
+      return `${name.substring(0, maxLength)}...`;
+    }
+    return name;
+  };
+
   const handleFileChange = (e) => {
     setSelectedFile(e.target.files[0]);
     setMessage("");
@@ -73,27 +80,19 @@ const CsvUpload = ({ onClose }) => {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      {onClose && (
-        <button 
-          onClick={onClose} 
-          className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold transition-colors"
-          aria-label="Close CSV Upload"
-        >
-          &times;
-        </button>
-      )}
-      
       <div className="mb-6">
         <div 
           className="border-2 border-dashed border-blue-300 rounded-lg p-8 bg-blue-50 text-center cursor-pointer hover:bg-blue-100 transition-colors mb-4"
           onClick={() => document.getElementById('csv-file-input').click()}
         >
           <div className="text-blue-600 mb-2 text-lg">
-            {selectedFile ? `Selected: ${selectedFile.name}` : 'Drag and drop your CSV file here'}
+            {selectedFile ? `${truncateFileName(selectedFile.name)}` : 'Drag and drop your CSV file here'}
           </div>
-          <p className="text-sm text-gray-500">
-            or click to browse files
-          </p>
+          {!selectedFile && (
+            <p className="text-sm text-gray-500">
+              or click to browse files
+            </p>
+          )}
         </div>
         
         <input
@@ -115,7 +114,7 @@ const CsvUpload = ({ onClose }) => {
         
         <button 
           onClick={handleUpload} 
-          className="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 font-medium shadow-md transition-all" 
+          className="px-5 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 font-medium shadow-md transition-all" 
           disabled={uploading || !selectedFile}
         >
           {uploading ? "Uploading..." : "Upload File"}

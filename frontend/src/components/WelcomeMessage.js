@@ -80,7 +80,7 @@ const WelcomeMessage = () => {
               Welcome to FlipDocs
             </h1>
             <p className="text-xl text-gray-600 mt-3 max-w-2xl">
-              Your centralized platform for API documentation, management, and discovery
+              Centralized platform for API documentation, management, and discovery
             </p>
           </div>
         </div>

@@ -262,7 +262,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
             {!isEdit && (isAdmin || canWrite) && (
               <div className="mb-6 flex gap-4">
                 <button
-                  className="px-5 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+                  className="px-6 py-3 bg-blue-500 text-white rounded-full shadow-md hover:bg-blue-600 transition-all"
                   onClick={() => {
                     setShowAdd(true);
                     setProjectName("");
@@ -275,7 +275,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
                   Add New Project
                 </button>
                 <button
-                  className="px-5 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+                  className="px-6 py-3 bg-green-500 text-white rounded-full shadow-md hover:bg-green-600 transition-all"
                   onClick={() => {
                     setShowAdd(false);
                     setProjectName("");
@@ -290,7 +290,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
                 <button
                   type="button"
                   onClick={() => setShowCsvUpload(true)}
-                  className="px-5 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg shadow-md hover:shadow-lg transition-all"
+                  className="px-6 py-3 bg-purple-500 text-white rounded-full shadow-md hover:bg-purple-600 transition-all"
                 >
                   CSV Upload
                 </button>
@@ -311,12 +311,12 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
                 <div>
                   <div className="flex items-center mb-2">
                     <label htmlFor="projectName" className="block text-sm font-semibold text-gray-700">
-                      Project Name *
+                      Project Name <span className="text-red-500">*</span>
                     </label>
                     <button
                       type="button"
                       onClick={toggleInstructions}
-                      className="ml-2 inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                      className="ml-2 inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 text-blue-800 font-bold hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                       aria-label="Project information"
                     >
                       i
@@ -377,7 +377,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
                 
                 {(isAdmin) && (<div className="relative">
                   <label htmlFor="teamSearch" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Select Team *
+                    Select Team <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -441,7 +441,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
               <form className="space-y-5" onSubmit={handleAddTeam}>
                 <div>
                   <label htmlFor="teamName" className="block text-sm font-semibold text-gray-700 mb-2">
-                    Team Name *
+                    Team Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="teamName"
