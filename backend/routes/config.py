@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, Depends,HTTPException, File, UploadFile
+from fastapi import APIRouter, Query, Depends, File, UploadFile
 from controllers.configController import (
     create_new_project,
     retrieve_team_projects,

@@ -9,6 +9,7 @@ frontend/.pnp.js
 #global
 node_modules
 
+*.env
 # testing
 /coverage
 
