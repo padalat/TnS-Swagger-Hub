@@ -2,11 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BASE_API } from "../utils/baseApi";
 import Instruction from "./Instruction";
-import {AuthContext} from '../contexts/AuthContext'
+import { AuthContext } from '../contexts/AuthContext'
 import { useContext } from "react";
-import CsvUpload from "./CsvUpload"; // Use CsvUpload directly
+import CsvUpload from "./CsvUpload";
 
-const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject, setProjects, onClose,allTeams,setAllTeams ,addTeam,setAddTeam,onAddTeam,onUpdateProject, cachedProjects, setCachedProjects,selectedTeam,setSelectedTeam}) => {
+const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject, setProjects, onClose, allTeams, setAllTeams, addTeam, setAddTeam, onAddTeam, onUpdateProject, cachedProjects, setCachedProjects, selectedTeam, setSelectedTeam }) => {
   const [projectName, setProjectName] = useState("");
   const [preprodUrl, setPreprodUrl] = useState("");
   const [prodUrl, setProdUrl] = useState("");
@@ -19,20 +19,19 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
   const [teamName, setTeamName] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [isTeamSelected, setIsTeamSelected] = useState(false);
-  const [showCsvUpload, setShowCsvUpload] = useState(false); // state for CSV uploader
+  const [showCsvUpload, setShowCsvUpload] = useState(false);
 
   const navigate = useNavigate();
 
-  const {token,isAdmin,canRead,canWrite,decoded}=useContext(AuthContext);
-  // const [selectedTeam,setSelectedTeam] = useState();
+  const { token, isAdmin, canRead, canWrite, decoded } = useContext(AuthContext);
   useEffect(() => {
     const defaultTeam = isAdmin ? "" : decoded?.["team_name"];
     setSelectedTeam(defaultTeam);
-    setTeamName(defaultTeam); // pre-fill input, even if hidden
-    setIsTeamSelected(!isAdmin); // true only for non-admins
+    setTeamName(defaultTeam);
+    setIsTeamSelected(!isAdmin);
   }, []);
-  
- 
+
+
   useEffect(() => {
     if (addProject?.isEditing && addProject.projectData) {
       setIsEdit(true);
@@ -42,17 +41,17 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
       setProdUrl(data.prod_url || "");
       setPgUrl(data.pg_url || "");
       setSelectedTeam(data.team_name || "");
-      setTeamName(data.team_name || ""); // pre-fill the team search input
-      setIsTeamSelected(true);        // mark team as valid so it doesn't trigger error
+      setTeamName(data.team_name || "");
+      setIsTeamSelected(true);
     } else {
       setIsEdit(false);
       setProjectName("");
       setPreprodUrl("");
       setProdUrl("");
-      setPgUrl(""); 
+      setPgUrl("");
       setSelectedTeam(selectedTeam);
-      setTeamName(selectedTeam); // pre-fill the team search input
-      setIsTeamSelected(true); 
+      setTeamName(selectedTeam);
+      setIsTeamSelected(true);
     }
   }, [addProject]);
 
@@ -95,7 +94,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
           navigate("/");
         }
       }, 0);
-      
+
     } catch (error) {
       console.error("Error adding team:", error);
       setMessage(error.message || "Error processing team. Please try again.");
@@ -123,7 +122,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
       setIsSubmitting(false);
       return;
     }
-    
+
 
     try {
       let response, data;
@@ -178,10 +177,6 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
           });
         }
 
-        // Call the update handler passed from ProjectsPanel
-        // if (typeof onUpdateProject === "function") {
-        //   onUpdateProject(data);
-        // }
 
         setMessage("Project updated successfully!");
       } else {
@@ -210,7 +205,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
             return updated;
           });
         }
-        
+
         onAddProject ? onAddProject(data) : setProjects(prev => [...prev, data]);
         navigate("/");
         setMessage("Project added successfully!");
@@ -247,14 +242,14 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
     <div className="relative flex flex-col items-center p-8 w-full">
       <div className="bg-white p-8 rounded-xl shadow-xl w-full max-w-lg border border-gray-100">
         {showCsvUpload ? (
-          // If CSV upload is toggled then render only the CSV upload interface
+
           <div>
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Upload CSV File</h2>
             <CsvUpload onClose={onClose} />
-            
+
           </div>
         ) : (
-          // Otherwise render the default form with CSV Upload toggle button included
+
           <>
             <h2 className="text-2xl font-bold mb-6 text-gray-800">
               {isEdit ? "Edit Project" : isAdmin ? "Choose Action" : "Add Project"}
@@ -297,11 +292,10 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
               </div>
             )}
             {message && (
-              <div className={`p-4 mb-6 rounded-lg ${
-                message.includes("Error") || message.includes("Failed")
+              <div className={`p-4 mb-6 rounded-lg ${message.includes("Error") || message.includes("Failed")
                   ? "bg-red-100 text-red-700 border border-red-200"
                   : "bg-green-100 text-green-700 border border-green-200"
-              }`}>
+                }`}>
                 {message}
               </div>
             )}
@@ -374,7 +368,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
                     className="w-full border border-gray-300 p-3 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm"
                   />
                 </div>
-                
+
                 {(isAdmin) && (<div className="relative">
                   <label htmlFor="teamSearch" className="block text-sm font-semibold text-gray-700 mb-2">
                     Select Team <span className="text-red-500">*</span>
@@ -383,7 +377,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
                     type="text"
                     id="teamSearch"
                     placeholder="Search team..."
-                    value={teamName} // Changed from selectedTeam to teamName to make it editable
+                    value={teamName}
                     onChange={(e) => {
                       setTeamName(e.target.value);
                       setShowDropdown(true);
@@ -404,7 +398,7 @@ const AddProjectForm = ({ addProject, onAddProject, editProject, setEditProject,
                             onClick={() => {
                               setSelectedTeam(team.team_name);
                               setTeamName(team.team_name);
-                              setIsTeamSelected(true); 
+                              setIsTeamSelected(true);
                               setShowDropdown(false);
                             }}
                             className="px-4 py-3 hover:bg-blue-50 cursor-pointer border-b border-gray-100"

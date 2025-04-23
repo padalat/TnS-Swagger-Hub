@@ -12,8 +12,8 @@ const CsvUpload = ({ onClose }) => {
   const [error, setError] = useState("");
   const { token, isAdmin, decoded } = useContext(AuthContext);
   const navigate = useNavigate();
-  
-  // The allowed team for non-admin users
+
+
   const userTeam = decoded?.["team_name"];
 
   const truncateFileName = (name, maxLength = 20) => {
@@ -29,7 +29,7 @@ const CsvUpload = ({ onClose }) => {
     setError("");
   };
 
-  // Basic drag and drop handlers
+
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -49,15 +49,11 @@ const CsvUpload = ({ onClose }) => {
       setError("Please select a CSV file.");
       return;
     }
-    // For non-admins, validate file type if required (optional validation)
-    // if (!isAdmin && selectedFile.type !== "text/csv") {
-    //   setError(`Only CSV files are allowed for team "${userTeam}"`);
-    //   return;
-    // }
-    
+
+
     setUploading(true);
     try {
-      // Directly upload the selected file without parsing on frontend
+
       const result = await uploadCsvFile(selectedFile, token);
       if (result.error) {
         setError(result.error);
@@ -75,13 +71,13 @@ const CsvUpload = ({ onClose }) => {
   };
 
   return (
-    <div 
+    <div
       className="bg-gradient-to-b from-white to-blue-50 shadow-lg rounded-xl p-8 relative border border-blue-100"
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
       <div className="mb-6">
-        <div 
+        <div
           className="border-2 border-dashed border-blue-300 rounded-lg p-8 bg-blue-50 text-center cursor-pointer hover:bg-blue-100 transition-colors mb-4"
           onClick={() => document.getElementById('csv-file-input').click()}
         >
@@ -94,7 +90,7 @@ const CsvUpload = ({ onClose }) => {
             </p>
           )}
         </div>
-        
+
         <input
           id="csv-file-input"
           type="file"
@@ -103,36 +99,36 @@ const CsvUpload = ({ onClose }) => {
           className="hidden"
         />
       </div>
-      
+
       <div className="flex justify-between items-center">
-        <button 
-          onClick={onClose} 
+        <button
+          onClick={onClose}
           className="px-5 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 font-medium border border-gray-200 shadow-sm"
         >
           Cancel
         </button>
-        
-        <button 
-          onClick={handleUpload} 
-          className="px-5 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 font-medium shadow-md transition-all" 
+
+        <button
+          onClick={handleUpload}
+          className="px-5 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-lg hover:from-purple-600 hover:to-purple-700 font-medium shadow-md transition-all"
           disabled={uploading || !selectedFile}
         >
           {uploading ? "Uploading..." : "Upload File"}
         </button>
       </div>
-      
+
       {uploading && (
         <div className="mt-6 flex justify-center">
           <Loader />
         </div>
       )}
-      
+
       {message && (
         <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700">
           {message}
         </div>
       )}
-      
+
       {error && (
         <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
           {error}

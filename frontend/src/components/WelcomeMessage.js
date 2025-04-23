@@ -14,19 +14,18 @@ const WelcomeMessage = () => {
 
   const { token, decoded } = useContext(AuthContext);
 
-  // Fetch recent activities and statistics when component mounts
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${BASE_API}/activities/recent?k=5`,{
+      fetch(`${BASE_API}/activities/recent?k=5`, {
         "headers": {
           "Authorization": `Bearer ${token}`
-        }     
+        }
       }),
-      fetch(`${BASE_API}/statistics`,{
+      fetch(`${BASE_API}/statistics`, {
         "headers": {
           "Authorization": `Bearer ${token}`
-        }     
+        }
       })
     ])
       .then(([resActivities, resStats]) => {
@@ -61,11 +60,11 @@ const WelcomeMessage = () => {
       hour12: true
     });
   };
-  
+
   return (
     <div className="h-full w-full flex flex-col bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       {/* Header Hero Banner */}
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -85,11 +84,11 @@ const WelcomeMessage = () => {
           </div>
         </div>
       </motion.div>
-      
+
       {/* Dashboard Grid */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Stats Cards Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
@@ -109,7 +108,7 @@ const WelcomeMessage = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-all duration-300 border border-gray-100">
             <div className="flex items-center">
               <div className="p-4 bg-blue-100 rounded-full mr-4">
@@ -121,7 +120,7 @@ const WelcomeMessage = () => {
               </div>
             </div>
           </div>
-          
+
         </motion.div>
 
         {/* Recent Activity Section */}
@@ -134,7 +133,7 @@ const WelcomeMessage = () => {
           <div className="bg-white shadow-lg rounded-xl p-6 w-full min-h-[200px] h-fit ">
             <h3 className="text-2xl font-bold text-gray-800 mb-6 border-b pb-3 flex items-center">
               <FiCheckCircle className="text-green-500 mr-2" />
-              Recent API Activity
+              Recent Activity
             </h3>
 
             {loading ? (
@@ -148,7 +147,7 @@ const WelcomeMessage = () => {
             ) : activities && activities.length > 0 ? (
               <ul className="space-y-4 overflow-auto" style={{ maxHeight: "calc(100vh - 360px)" }}>
                 {activities.map((activity, index) => (
-                  <motion.li 
+                  <motion.li
                     key={activity.uuid}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -159,9 +158,9 @@ const WelcomeMessage = () => {
                     <div className="flex flex-col space-y-2">
                       <div className="flex items-center">
                         <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                          {activity.message.includes("added") ? "New Project" : 
-                           activity.message.includes("updated") ? "Update" : 
-                           activity.message.includes("deleted") ? "Removal" : "Activity"}
+                          {activity.message.includes("added") ? "New Project" :
+                            activity.message.includes("updated") ? "Update" :
+                              activity.message.includes("deleted") ? "Removal" : "Activity"}
                         </span>
                         <span className="text-xs text-gray-500 ml-2">
                           {formatTimestamp(activity.time)}
