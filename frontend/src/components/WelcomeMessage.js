@@ -18,7 +18,7 @@ const WelcomeMessage = () => {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch(`${BASE_API}/activities/recent?k=4`,{
+      fetch(`${BASE_API}/activities/recent?k=5`,{
         "headers": {
           "Authorization": `Bearer ${token}`
         }     
