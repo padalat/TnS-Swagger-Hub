@@ -249,7 +249,7 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
                 Team Selected
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 relative">
               <input
                 type="text"
                 placeholder="Search projects..."
@@ -265,8 +265,9 @@ const ProjectsPanel = ({ setSelectedProject, projects, setProjects, setAddProjec
               />
               {search && (
                 <button 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 transition-colors"
                   onClick={() => setSearch("")}
+                  aria-label="Clear search"
                 >
                   <span className="text-xl">×</span>
                 </button>
