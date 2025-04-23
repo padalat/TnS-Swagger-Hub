@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 from routes.swagger import router as swagger_routes
 from routes.config import router as config_routes
 

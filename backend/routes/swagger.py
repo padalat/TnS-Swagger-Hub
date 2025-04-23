@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Request, Depends
+from fastapi import APIRouter, Request, Depends
 from controllers.swaggerController import (
     get_all_swagger_docs,
     get_project_swagger_by_uuid_and_env,
@@ -8,7 +8,6 @@ from controllers.swaggerController import (
     patch_event_configs,
     delete_event_configs
 )
-from dependencies.jwt_bearer import JWTBearer
 from dependencies.permissions import require_read_permission,require_admin_permission
 
 router = APIRouter()

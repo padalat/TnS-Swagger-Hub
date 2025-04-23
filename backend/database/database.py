@@ -3,9 +3,20 @@ from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 import uuid
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import UniqueConstraint
+from dotenv import dotenv_values 
+
+config = dotenv_values()
+
 IST = timezone(timedelta(hours=5, minutes=30))
 
-DATABASE_URL = "mysql+pymysql://root:root@127.0.0.1:3307/flipdocs"
+DB_USER = config.get("DB_LOCAL_USER")
+DB_PASSWORD = config.get("DB_LOCAL_PASSWORD")
+DB_HOST = config.get("DB_LOCAL_HOST")
+DB_PORT = config.get("DB_LOCAL_PORT")
+DB_NAME = config.get("DB_NAME")
+
+DATABASE_URL = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+
 engine = create_engine(DATABASE_URL, echo=True, future=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

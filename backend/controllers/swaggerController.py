@@ -6,6 +6,7 @@ import json
 from json.decoder import JSONDecodeError
 from database.database import FDTeam, get_db, FDProjectRegistry
 from fastapi.responses import JSONResponse
+from json import JSONDecodeError
 
 async def get_all_swagger_docs():
     db = next(get_db())
@@ -16,6 +17,8 @@ async def get_all_swagger_docs():
         responses = await asyncio.gather(*tasks)
     return responses
 
+
+
 async def fetch_swagger_from_url(client, projectname, url, id):
     try:
         response = await client.get(url)
@@ -23,11 +26,18 @@ async def fetch_swagger_from_url(client, projectname, url, id):
             try:
                 data = response.json()
             except JSONDecodeError:
-                return {"service": projectname, "swagger": None}
+                return {"service": projectname, "swagger": None, "id": id}
             return {"service": projectname, "swagger": data, "id": id}
-    except httpx.HTTPError:
-        pass
-    return {"service": projectname, "swagger": None}
+        else:
+            raise HTTPException(
+                status_code=response.status_code,
+                detail=f"Failed to fetch Swagger for project '{projectname}' from {url}"
+            )
+    except httpx.RequestError as e:
+        raise HTTPException(
+            status_code=502,
+            detail=f"HTTP request failed for project '{projectname}': {str(e)}"
+        )
 
 async def get_project_swagger_by_uuid_and_env(uuid: str, env: str,user):
     db = next(get_db())
@@ -38,8 +48,8 @@ async def get_project_swagger_by_uuid_and_env(uuid: str, env: str,user):
     
     if not user.get("flipdocs-admin"):
         team = db.query(FDTeam).filter(FDTeam.team_id == project.team_id).first()
-        if not team or team.team_name != user.get("team_name"):
-                raise HTTPException(status_code=400, detail="Invalid team name")
+        if not team or team.team_name.lower() != user.get("team_name", "").lower():
+                raise HTTPException(status_code=400, detail="Your team does not have access to this project")
     
     
     
